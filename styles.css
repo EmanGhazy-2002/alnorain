@@ -6,13 +6,13 @@
 
 body {
     font-family: "Cairo", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #faf1e5;
+    background-color: #f7f7f7;
     color: #0c4141;
     line-height: 1.6;
 }
 
 .header {
-    background-color: #faf1e5;
+    background-color: #fffefd;
     padding: 20px 0;
     box-shadow: 0 2px 10px rgba(12, 65, 65, 0.1);
     position: relative;
@@ -67,7 +67,7 @@ body {
 .hero {
     text-align: center;
     padding: 60px 20px;
-    background: linear-gradient(135deg, #faf1e5 0%, #f5e6d3 100%);
+    background: linear-gradient(135deg, #faf1e5 0%, #fafafa 100%);
 }
 
 .hero h1 {
