@@ -308,7 +308,7 @@ const categoryNames = {
   tshirts: "تيشيرتات تطريز",
   bags: "حقيبة Tote Bag",
   carpets: "سجادة صلاة صغيرة",
-  stickers: "لاصق معدني",
+  stickers: "ستيكرات معدن",
   accessories: "مدالية - علاقة للسيارة",
   book: "فواصل كتب",
 };
