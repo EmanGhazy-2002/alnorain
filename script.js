@@ -816,7 +816,7 @@ const defaultProducts = [
   },
   {
     id: 19,
-    name: "فاصل قران خشبي",
+    name: "فاصل قرآن كريم خشبي",
     price: 0.5,
     defaultImage: "images/medal/medal-3.jpg",
     stock: 15,
