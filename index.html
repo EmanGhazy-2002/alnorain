@@ -20,12 +20,15 @@
       type="text/javascript"
       src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"
     ></script>
-    <!-- jsPDF for PDF generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- html2canvas for HTML to Canvas conversion -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js"></script>
     <!-- CSS -->
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="css/admin.css" />
   </head>
 
   <body>
@@ -42,7 +45,7 @@
 
     <!-- Hero Section -->
     <section class="hero">
-      <!-- <h1>النورين - جودة وأناقة في كل منتج</h1> -->
+      <h1>النورين - جودة وأناقة في كل منتج</h1>
       <p>اكتشف مجموعتنا المميزة من التيشيرتات والسجاد والحقائب</p>
     </section>
 
@@ -281,252 +284,6 @@
         ></p>
       </div>
     </div>
-
-    <!-- Admin Panel -->
-    <div
-      id="adminPanel"
-      style="
-        display: none;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: white;
-        padding: 30px;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        z-index: 3000;
-        max-width: 500px;
-        width: 90%;
-      "
-    >
-      <h3
-        style="
-          text-align: center;
-          color: #0c4141;
-          margin-bottom: 20px;
-          font-family: 'Amiri', serif;
-        "
-      >
-        🔒 لوحة إدارة المخزون
-      </h3>
-
-      <!-- Login Section -->
-      <div id="passwordSection" style="margin-bottom: 20px">
-        <label
-          style="
-            display: block;
-            margin-bottom: 10px;
-            font-weight: bold;
-            color: #0c4141;
-          "
-          >البريد الإلكتروني:</label
-        >
-        <input
-          type="email"
-          id="adminEmail"
-          placeholder="أدخل البريد الإلكتروني"
-          style="
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-family: 'Cairo', sans-serif;
-            margin-bottom: 10px;
-          "
-        />
-        <label
-          style="
-            display: block;
-            margin-bottom: 10px;
-            font-weight: bold;
-            color: #0c4141;
-          "
-          >كلمة المرور:</label
-        >
-        <input
-          type="password"
-          id="adminPassword"
-          placeholder="أدخل كلمة المرور"
-          style="
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-family: 'Cairo', sans-serif;
-            margin-bottom: 10px;
-          "
-        />
-        <button
-          onclick="checkAdminPassword()"
-          style="
-            width: 100%;
-            padding: 12px;
-            background: #0c4141;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: 'Cairo', sans-serif;
-          "
-        >
-          تسجيل الدخول
-        </button>
-      </div>
-
-      <!-- Admin Controls -->
-      <div id="adminControls" style="display: none">
-        <div style="margin-bottom: 20px">
-          <label
-            style="
-              display: block;
-              margin-bottom: 10px;
-              font-weight: bold;
-              color: #0c4141;
-            "
-            >اختر المنتج:</label
-          >
-          <select
-            id="productSelect"
-            style="
-              width: 100%;
-              padding: 10px;
-              border: 2px solid #e0e0e0;
-              border-radius: 8px;
-              font-family: 'Cairo', sans-serif;
-            "
-          >
-            <!-- Will be populated by JavaScript -->
-          </select>
-        </div>
-
-        <div style="margin-bottom: 20px">
-          <label
-            style="
-              display: block;
-              margin-bottom: 10px;
-              font-weight: bold;
-              color: #0c4141;
-            "
-            >الكمية الجديدة:</label
-          >
-          <input
-            type="number"
-            id="newStock"
-            min="0"
-            style="
-              width: 100%;
-              padding: 10px;
-              border: 2px solid #e0e0e0;
-              border-radius: 8px;
-              font-family: 'Cairo', sans-serif;
-            "
-          />
-        </div>
-
-        <div
-          style="
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 20px;
-          "
-        >
-          <button
-            onclick="updateSelectedProductStock()"
-            style="
-              padding: 12px 20px;
-              background: #0c4141;
-              color: white;
-              border: none;
-              border-radius: 8px;
-              cursor: pointer;
-              font-family: 'Cairo', sans-serif;
-            "
-          >
-            تحديث المخزون
-          </button>
-          <button
-            onclick="restockAllProducts(10)"
-            style="
-              padding: 12px 20px;
-              background: #4caf50;
-              color: white;
-              border: none;
-              border-radius: 8px;
-              cursor: pointer;
-              font-family: 'Cairo', sans-serif;
-            "
-          >
-            إعادة تعبئة الكل
-          </button>
-        </div>
-
-        <div style="margin-bottom: 20px">
-          <button
-            id="signOutBtn"
-            style="
-              width: 100%;
-              padding: 12px;
-              background: #d32f2f;
-              color: white;
-              border: none;
-              border-radius: 8px;
-              cursor: pointer;
-              font-family: 'Cairo', sans-serif;
-            "
-          >
-            تسجيل الخروج
-          </button>
-        </div>
-
-        <div
-          id="stockStatus"
-          style="
-            padding: 15px;
-            background: #f5f5f5;
-            border-radius: 8px;
-            font-family: 'Cairo', sans-serif;
-            font-size: 14px;
-          "
-        >
-          <!-- Stock status will be displayed here -->
-        </div>
-      </div>
-
-      <div style="text-align: center; margin-top: 20px">
-        <button
-          onclick="closeAdminPanel()"
-          style="
-            padding: 12px 20px;
-            background: #e0e0e0;
-            color: #0c4141;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: 'Cairo', sans-serif;
-          "
-        >
-          إغلاق
-        </button>
-      </div>
-    </div>
-
-    <!-- Admin Panel Overlay -->
-    <div
-      id="adminOverlay"
-      style="
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 2999;
-      "
-      onclick="closeAdminPanel()"
-    ></div>
 
     <!-- Secret Message -->
     <div

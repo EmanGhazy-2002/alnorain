@@ -1,0 +1,369 @@
+/* Admin Dashboard Styles */
+.admin-dashboard {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #f5f5f5;
+    z-index: 3000;
+    overflow-y: auto;
+    font-family: "Cairo", sans-serif;
+}
+
+.admin-header {
+    background: #0c4141;
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.admin-header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-family: "Amiri", serif;
+}
+
+.close-admin-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: "Cairo", sans-serif;
+    transition: background 0.3s ease;
+}
+
+.close-admin-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.admin-content {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.admin-section {
+    margin-bottom: 30px;
+}
+
+.admin-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(12, 65, 65, 0.1);
+    margin-bottom: 20px;
+}
+
+.admin-card h2,
+.admin-card h3 {
+    color: #0c4141;
+    margin-bottom: 20px;
+    font-family: "Amiri", serif;
+}
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.admin-card.full-width {
+    grid-column: 1 / -1;
+}
+
+.admin-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #0c4141;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-family: "Cairo", sans-serif;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #0c4141;
+}
+
+.btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: "Cairo", sans-serif;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    background: #0c4141;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #0a3535;
+}
+
+.btn-success {
+    background: #4caf50;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #45a049;
+}
+
+.btn-info {
+    background: #2196f3;
+    color: white;
+}
+
+.btn-info:hover {
+    background: #1976d2;
+}
+
+.btn-warning {
+    background: #ff9800;
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #f57c00;
+}
+
+.btn-small {
+    padding: 5px 10px;
+    font-size: 14px;
+    min-width: 30px;
+}
+
+/* Stock Overview */
+.stock-overview {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.stock-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.stock-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    border-left: 4px solid #0c4141;
+}
+
+.stock-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.stock-item-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: #0c4141;
+}
+
+.stock-badge {
+    background: #0c4141;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.stock-item-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Product Stock Details */
+.product-selector {
+    margin-bottom: 20px;
+}
+
+.product-selector label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #0c4141;
+}
+
+.product-selector select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-family: "Cairo", sans-serif;
+}
+
+.product-stock-details {
+    margin-top: 20px;
+}
+
+.detailed-stock-grid {
+    display: grid;
+    gap: 20px;
+}
+
+.sleeve-section {
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.sleeve-section h5 {
+    color: #0c4141;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 5px;
+}
+
+.age-group {
+    margin-bottom: 15px;
+}
+
+.age-group h6 {
+    color: #1a5a5a;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.sizes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.size-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.size-item label {
+    font-weight: 600;
+    color: #0c4141;
+    margin: 0;
+    min-width: 40px;
+}
+
+.stock-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.stock-input {
+    width: 60px;
+    padding: 4px 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    text-align: center;
+    font-family: "Cairo", sans-serif;
+}
+
+.simple-stock {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+}
+
+.simple-stock label {
+    font-weight: 600;
+    color: #0c4141;
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .admin-header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .admin-header h1 {
+        font-size: 1.2rem;
+    }
+
+    .admin-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-actions {
+        flex-direction: column;
+    }
+
+    .stock-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sizes-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .size-item {
+        flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
+    }
+
+    .simple-stock {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+}

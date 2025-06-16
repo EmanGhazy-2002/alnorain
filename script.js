@@ -1,4 +1,4 @@
-// Import Firebase services
+// Firebase configuration and initialization
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
 import {
   getFirestore,
@@ -9,8 +9,13 @@ import {
   updateDoc,
   addDoc,
   serverTimestamp,
+  writeBatch,
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-analytics.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -26,7 +31,18 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 const analytics = getAnalytics(app);
+
+// Initialize EmailJS
+if (window.emailjs) {
+  window.emailjs.init("lBhyMGQmJ3IJUTDW8");
+  console.log("✅ EmailJS initialized");
+} else {
+  console.warn("⚠️ EmailJS not available");
+}
+
+// ==================== DATA SECTION ====================
 
 // Detailed delivery pricing for Kuwait areas
 const deliveryPrices = {
@@ -157,7 +173,7 @@ const deliveryPrices = {
   ZOUR: 8.0,
 };
 
-// Updated Kuwait areas organized by governorate
+// Kuwait areas organized by governorate
 const kuwaitAreas = {
   "AL-ASIMAH": [
     "ABDULLAH AL SALEM",
@@ -287,7 +303,17 @@ const kuwaitAreas = {
   ],
 };
 
-// Product data with detailed stock information
+// Category names in Arabic
+const categoryNames = {
+  tshirts: "تيشيرتات تطريز",
+  bags: "حقيبة Tote Bag",
+  carpets: "سجادة صلاة صغيرة",
+  stickers: "لاصق معدني",
+  accessories: "مدالية - علاقة للسيارة",
+  book: "فواصل كتب",
+};
+
+// Default products data
 const defaultProducts = [
   // تيشيرتات تطريز with detailed stock
   {
@@ -465,7 +491,6 @@ const defaultProducts = [
     colors: ["أسود"],
     note: "اختيار أكبر من مقاسكم المعتاد برقم واحد",
   },
-
   {
     id: 5,
     name: " تصميم ياحُسين ٢٤ ",
@@ -495,7 +520,6 @@ const defaultProducts = [
     colors: ["أسود"],
     note: "اختيار أكبر من مقاسكم المعتاد برقم واحد",
   },
-
   {
     id: 6,
     name: "تصميم يازينب ٢٤ ",
@@ -801,66 +825,75 @@ const defaultProducts = [
   },
 ];
 
-// Category names in Arabic
-const categoryNames = {
-  tshirts: "تيشيرتات تطريز",
-  bags: "حقيبة Tote Bag",
-  carpets: "سجادة صلاة صغيرة",
-  stickers: "لاصق معدني",
-  accessories: "مدالية - علاقة للسيارة",
-  book: "فواصل كتب",
-};
+// ==================== GLOBAL VARIABLES ====================
 
-// Global variables
 let products = [...defaultProducts];
 const cart = [];
 let currentOrderType = "cart";
 let currentProductId = null;
 let orderItems = [];
 let currentCategory = "all";
-const logoClickCount = 0;
-const logoClickTimer = null;
+let logoClickCount = 0;
+let logoClickTimer = null;
 const secretSequence = [];
 let selectedOptions = {};
-const isAdminLoggedIn = false;
+let isAdminLoggedIn = false;
 
-// Initialize EmailJS
-if (window.emailjs) {
-  window.emailjs.init("F1D5UvXPwUpjYk_e5");
-  console.log("✅ EmailJS initialized");
-} else {
-  console.warn("⚠️ EmailJS not available");
-}
+// Admin credentials (هيستبدلوا بـ Firebase Auth)
+const ADMIN_EMAIL = "admin@alnourain.com";
+const ADMIN_PASSWORD = "admin123"; // هيستخدم في Firebase Auth
 
-// Firebase functions
+// ==================== FIREBASE FUNCTIONS ====================
+
+// Upload all data to Firestore
+// Upload all data to Firestore using batch
 async function uploadDataToFirestore() {
   if (!isAdminLoggedIn) {
-    showNotification("يجب تسجيل الدخول كمدير أولاً");
-    return;
+    showNotification("يرجى تسجيل الدخول كمدير أولاً!");
+    console.log("⚠️ Admin not logged in");
+    return false;
   }
 
   try {
     showNotification("جاري تحميل البيانات إلى Firebase...");
+    console.log("🔥 Starting batch upload to Firestore...");
+
+    const batch = writeBatch(db);
 
     // Upload products
     for (const product of defaultProducts) {
-      await setDoc(doc(db, "products", product.id.toString()), product);
+      const productRef = doc(db, "products", product.id.toString());
+      batch.set(productRef, product);
+      console.log(`✅ Queued product ${product.id} for upload`);
     }
 
     // Upload delivery prices
-    await setDoc(doc(db, "deliveryPrices", "kuwait"), deliveryPrices);
+    const deliveryRef = doc(db, "deliveryPrices", "kuwait");
+    batch.set(deliveryRef, deliveryPrices);
+    console.log("✅ Queued delivery prices for upload");
 
     // Upload kuwait areas
-    await setDoc(doc(db, "kuwaitAreas", "governorates"), kuwaitAreas);
+    const areasRef = doc(db, "kuwaitAreas", "governorates");
+    batch.set(areasRef, kuwaitAreas);
+    console.log("✅ Queued Kuwait areas for upload");
 
+    // Commit batch
+    await batch.commit();
     showNotification("✅ تم تحميل جميع البيانات بنجاح!");
     console.log("✅ All data uploaded to Firestore");
+
+    // Reload products from Firebase
+    await loadDataFromFirestore();
+    generateProducts();
+    return true;
   } catch (error) {
-    console.error("❌ Error uploading data:", error);
-    showNotification("❌ حدث خطأ في تحميل البيانات");
+    console.error("❌ Error uploading data:", error.message);
+    showNotification("❌ حدث خطأ في تحميل البيانات: " + error.message);
+    return false;
   }
 }
 
+// Load products from Firestore
 async function loadDataFromFirestore() {
   try {
     console.log("🔄 Loading data from Firestore...");
@@ -869,27 +902,48 @@ async function loadDataFromFirestore() {
     const productsSnapshot = await getDocs(collection(db, "products"));
     if (!productsSnapshot.empty) {
       const firebaseProducts = [];
-      productsSnapshot.forEach((doc) => {
-        firebaseProducts.push({ id: doc.id, ...doc.data() });
+      productsSnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        firebaseProducts.push({ ...data, id: Number.parseInt(docSnap.id) });
       });
-      products = firebaseProducts;
+
+      products = firebaseProducts.sort((a, b) => a.id - b.id);
       console.log("✅ Products loaded from Firebase:", products.length);
+      return true;
+    } else {
+      console.log("⚠️ No products found in Firebase, using defaults");
+      products = [...defaultProducts];
+      return false;
     }
   } catch (error) {
-    console.warn("⚠️ Could not load from Firebase, using default data:", error);
+    console.warn(
+      "⚠️ Could not load from Firebase, using default data:",
+      error.message
+    );
     products = [...defaultProducts];
+    return false;
   }
 }
 
+// Update product in Firestore
 async function updateProductInFirestore(productId, updates) {
+  if (!isAdminLoggedIn) {
+    showNotification("يرجى تسجيل الدخول كمدير أولاً!");
+    console.log("⚠️ Admin not logged in");
+    return false;
+  }
+
   try {
     await updateDoc(doc(db, "products", productId.toString()), updates);
     console.log("✅ Product updated in Firebase");
+    return true;
   } catch (error) {
-    console.error("❌ Error updating product in Firebase:", error);
+    console.error("❌ Error updating product in Firebase:", error.message);
+    return false;
   }
 }
 
+// Save order to Firestore
 async function saveOrderToFirestore(orderData) {
   try {
     const docRef = await addDoc(collection(db, "orders"), {
@@ -900,12 +954,14 @@ async function saveOrderToFirestore(orderData) {
     console.log("✅ Order saved to Firebase with ID:", docRef.id);
     return docRef.id;
   } catch (error) {
-    console.error("❌ Error saving order:", error);
+    console.error("❌ Error saving order:", error.message);
     throw error;
   }
 }
 
-// Stock management functions for detailed inventory
+// ==================== STOCK MANAGEMENT ====================
+
+// Get total stock for a product
 function getTotalStock(product) {
   if (!product.detailedStock) {
     return product.stock || 0;
@@ -922,6 +978,7 @@ function getTotalStock(product) {
   return total;
 }
 
+// Get available stock for specific variant
 function getAvailableStock(product, sleeve, ageGroup, size) {
   if (!product.detailedStock) {
     return product.stock || 0;
@@ -934,14 +991,20 @@ function getAvailableStock(product, sleeve, ageGroup, size) {
   return getTotalStock(product);
 }
 
+// Update detailed stock after purchase
 async function updateDetailedStock(product, sleeve, ageGroup, size, quantity) {
   if (!product.detailedStock) {
     // For simple products (non-detailed stock)
     product.stock = Math.max(0, (product.stock || 0) - quantity);
 
     // Update in Firebase
-    if (isAdminLoggedIn) {
-      await updateProductInFirestore(product.id, { stock: product.stock });
+    const success = await updateProductInFirestore(product.id, {
+      stock: product.stock,
+    });
+    if (success) {
+      console.log(
+        `✅ Updated stock for product ${product.id}: ${product.stock}`
+      );
     }
     return;
   }
@@ -954,14 +1017,16 @@ async function updateDetailedStock(product, sleeve, ageGroup, size, quantity) {
     );
 
     // Update in Firebase
-    if (isAdminLoggedIn) {
-      await updateProductInFirestore(product.id, {
-        detailedStock: product.detailedStock,
-      });
+    const success = await updateProductInFirestore(product.id, {
+      detailedStock: product.detailedStock,
+    });
+    if (success) {
+      console.log(`✅ Updated detailed stock for product ${product.id}`);
     }
   }
 }
 
+// Get stock status with styling
 function getStockStatus(product) {
   const totalStock = getTotalStock(product);
 
@@ -974,6 +1039,9 @@ function getStockStatus(product) {
   }
 }
 
+// ==================== PRODUCT FUNCTIONS ====================
+
+// Generate and display products
 function generateProducts() {
   console.log("🔄 Loading products...");
   const productsGrid = document.getElementById("productsGrid");
@@ -991,6 +1059,10 @@ function generateProducts() {
       currentCategory === "all" || product.category === currentCategory
   );
 
+  console.log(
+    `📦 Showing ${filteredProducts.length} products for category: ${currentCategory}`
+  );
+
   filteredProducts.forEach((product) => {
     const stockStatus = getStockStatus(product);
     const totalStock = getTotalStock(product);
@@ -1001,12 +1073,12 @@ function generateProducts() {
     if (product.category === "tshirts") {
       priceDisplay = `
         <div class="product-price">
-          <div>للأطفال: ${product.priceKids} دك</div>
-          <div>للكبار: ${product.priceAdults} دك</div>
+          <div>للأطفال: <span class="price-value">${product.priceKids} دك</span></div>
+          <div>للكبار: <span class="price-value">${product.priceAdults} دك</span></div>
         </div>
       `;
     } else {
-      priceDisplay = `<div class="product-price">${product.price} دك</div>`;
+      priceDisplay = `<div class="product-price"><span class="price-value">${product.price} دك</span></div>`;
     }
 
     const productCard = document.createElement("div");
@@ -1068,7 +1140,7 @@ function generateProducts() {
   console.log("✅ Products loaded successfully!");
 }
 
-// Product Details Modal with dynamic image changing
+// Show product details modal
 function showProductDetails(productId) {
   const product = products.find((p) => p.id === productId);
   if (!product) return;
@@ -1087,12 +1159,12 @@ function showProductDetails(productId) {
   if (product.category === "tshirts") {
     priceDisplay = `
       <div class="product-details-price">
-        <div>للأطفال: ${product.priceKids} دك</div>
-        <div>للكبار: ${product.priceAdults} دك</div>
+        <div>للأطفال: <span class="price-value">${product.priceKids} دك</span></div>
+        <div>للكبار: <span class="price-value">${product.priceAdults} دك</span></div>
       </div>
     `;
   } else {
-    priceDisplay = `<div class="product-details-price">${product.price} دك</div>`;
+    priceDisplay = `<div class="product-details-price"><span class="price-value">${product.price} دك</span></div>`;
   }
 
   // Build size options for t-shirts with detailed stock
@@ -1249,6 +1321,7 @@ function showProductDetails(productId) {
   });
 }
 
+// Setup option listeners for product modal
 function setupOptionListeners(product) {
   // Option button listeners
   document.querySelectorAll(".option-btn").forEach((btn) => {
@@ -1326,6 +1399,7 @@ function setupOptionListeners(product) {
   }
 }
 
+// Show sizes for selected age group
 function showSizesForAgeGroup(product, sleeve, ageGroup) {
   const sizeGroup = document.getElementById("sizeGroup");
   const sizeButtons = document.getElementById("sizeButtons");
@@ -1373,6 +1447,7 @@ function showSizesForAgeGroup(product, sleeve, ageGroup) {
   sizeGroup.style.display = "block";
 }
 
+// Update product image based on selection
 function updateProductImage(product) {
   const modalImage = document.getElementById("productModalImage");
   if (!modalImage || !product.images) return;
@@ -1394,163 +1469,30 @@ function updateProductImage(product) {
   }
 }
 
+// Change quantity with +/- buttons
 function changeQuantity(delta) {
   const quantityInput = document.getElementById("productQuantity");
   if (!quantityInput) return;
 
   const currentValue = Number.parseInt(quantityInput.value) || 1;
-  const maxValue = Number.parseInt(quantityInput.max) || 1;
+  const maxValue = Number.parseInt(quantityInput.max) || 999;
   const newValue = Math.max(1, Math.min(currentValue + delta, maxValue));
 
   quantityInput.value = newValue;
   selectedOptions.quantity = newValue;
 }
 
+// Close product details modal
 function closeProductDetails() {
   const modal = document.getElementById("productDetailsModal");
   if (modal) {
     modal.style.display = "none";
   }
+  // Reset selected options
   selectedOptions = {};
 }
 
-function addToCartFromModal(productId) {
-  const product = products.find((p) => p.id === productId);
-  if (!product) return;
-
-  // Validate required options
-  if (!validateProductOptions(product)) return;
-
-  // Check stock availability
-  if (!checkStockAvailability(product)) return;
-
-  // Create cart item with selected options
-  const cartItem = createCartItemWithOptions(product);
-
-  // Check if same item with same options already exists
-  const existingItemIndex = cart.findIndex((item) => {
-    return (
-      item.id === cartItem.id &&
-      item.selectedColor === cartItem.selectedColor &&
-      item.selectedSize === cartItem.selectedSize &&
-      item.selectedSleeve === cartItem.selectedSleeve &&
-      item.selectedAgeGroup === cartItem.selectedAgeGroup
-    );
-  });
-
-  if (existingItemIndex !== -1) {
-    cart[existingItemIndex].quantity += cartItem.quantity;
-  } else {
-    cart.push(cartItem);
-  }
-
-  updateCartUI();
-  showNotification("تم إضافة المنتج للسلة");
-  closeProductDetails();
-}
-
-function buyNowFromModal(productId) {
-  const product = products.find((p) => p.id === productId);
-  if (!product) return;
-
-  // Validate required options
-  if (!validateProductOptions(product)) return;
-
-  // Check stock availability
-  if (!checkStockAvailability(product)) return;
-
-  // Create order item with selected options
-  const orderItem = createCartItemWithOptions(product);
-
-  currentOrderType = "single";
-  currentProductId = productId;
-  orderItems = [orderItem];
-  closeProductDetails();
-  showOrderForm();
-}
-
-function validateProductOptions(product) {
-  // Check required options based on product type
-  if (product.detailedStock) {
-    if (!selectedOptions.sleeve) {
-      showNotification("يرجى اختيار نوع الكم");
-      return false;
-    }
-    if (!selectedOptions.ageGroup) {
-      showNotification("يرجى اختيار الفئة العمرية");
-      return false;
-    }
-    if (!selectedOptions.size) {
-      showNotification("يرجى اختيار المقاس");
-      return false;
-    }
-  }
-
-  if (product.colors && !selectedOptions.color) {
-    showNotification("يرجى اختيار اللون");
-    return false;
-  }
-
-  return true;
-}
-
-function checkStockAvailability(product) {
-  if (product.detailedStock) {
-    const availableStock = getAvailableStock(
-      product,
-      selectedOptions.sleeve,
-      selectedOptions.ageGroup,
-      selectedOptions.size
-    );
-
-    if (availableStock < selectedOptions.quantity) {
-      showNotification(`الكمية المتاحة: ${availableStock} قطعة فقط`);
-      return false;
-    }
-  } else {
-    // For simple products
-    if ((product.stock || 0) < selectedOptions.quantity) {
-      showNotification(`الكمية المتاحة: ${product.stock || 0} قطعة فقط`);
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function createCartItemWithOptions(product) {
-  const basePrice =
-    product.category === "tshirts"
-      ? selectedOptions.ageGroup === "kids"
-        ? product.priceKids
-        : product.priceAdults
-      : product.price;
-
-  return {
-    ...product,
-    price: basePrice,
-    quantity: selectedOptions.quantity || 1,
-    selectedColor: selectedOptions.color || null,
-    selectedSize: selectedOptions.size || null,
-    selectedSleeve: selectedOptions.sleeve || null,
-    selectedAgeGroup: selectedOptions.ageGroup || null,
-    displayName: `${product.name}${
-      selectedOptions.color ? ` - ${selectedOptions.color}` : ""
-    }${selectedOptions.size ? ` - ${selectedOptions.size}` : ""}${
-      selectedOptions.sleeve
-        ? ` - ${
-            selectedOptions.sleeve === "shortSleeve" ? "كم قصير" : "كم طويل"
-          }`
-        : ""
-    }${
-      selectedOptions.ageGroup
-        ? ` - ${selectedOptions.ageGroup === "kids" ? "أطفال" : "كبار"}`
-        : ""
-    }`,
-  };
-}
-
-// Category filtering
+// Filter products by category
 function filterProducts(category) {
   currentCategory = category;
 
@@ -1558,23 +1500,18 @@ function filterProducts(category) {
   document.querySelectorAll(".category-btn").forEach((btn) => {
     btn.classList.remove("active");
   });
-  document
-    .querySelector(`[data-category="${category}"]`)
-    .classList.add("active");
+  const activeBtn = document.querySelector(`[data-category="${category}"]`);
+  if (activeBtn) {
+    activeBtn.classList.add("active");
+  }
 
   // Regenerate products to apply filter
   generateProducts();
 }
 
-// Cart functions
-function addToCart(productId) {
-  showProductDetails(productId);
-}
+// ==================== CART FUNCTIONS ====================
 
-function buyNow(productId) {
-  showProductDetails(productId);
-}
-
+// Update cart UI
 function updateCartUI() {
   const cartCount = document.getElementById("cartCount");
   const cartItems = document.getElementById("cartItems");
@@ -1625,12 +1562,14 @@ function updateCartUI() {
   cartTotal.innerHTML = `${total} دك<br><small style="color: #0c4141; font-weight: bold;">التوصيل: حسب المنطقة</small>`;
 }
 
+// Remove item from cart
 function removeFromCart(itemIndex) {
   cart.splice(itemIndex, 1);
   updateCartUI();
   showNotification("تم حذف المنتج من السلة");
 }
 
+// Toggle cart sidebar
 function toggleCart(forceClose = null) {
   const cartSidebar = document.getElementById("cartSidebar");
   const cartOverlay = document.getElementById("cartOverlay");
@@ -1655,7 +1594,151 @@ function toggleCart(forceClose = null) {
   }
 }
 
-// Order form functions
+// Validate product options
+function validateProductOptions(product) {
+  // Check required options based on product type
+  if (product.detailedStock) {
+    if (!selectedOptions.sleeve) {
+      showNotification("يرجى اختيار نوع الكم");
+      return false;
+    }
+    if (!selectedOptions.ageGroup) {
+      showNotification("يرجى اختيار الفئة العمرية");
+      return false;
+    }
+    if (!selectedOptions.size) {
+      showNotification("يرجى اختيار المقاس");
+      return false;
+    }
+  }
+
+  if (product.colors && !selectedOptions.color) {
+    showNotification("يرجى اختيار اللون");
+    return false;
+  }
+
+  return true;
+}
+
+// Check stock availability
+function checkStockAvailability(product) {
+  if (product.detailedStock) {
+    const availableStock = getAvailableStock(
+      product,
+      selectedOptions.sleeve,
+      selectedOptions.ageGroup,
+      selectedOptions.size
+    );
+
+    if (availableStock < selectedOptions.quantity) {
+      showNotification(`الكمية المتاحة: ${availableStock} قطعة فقط`);
+      return false;
+    }
+  } else {
+    // For simple products
+    if ((product.stock || 0) < selectedOptions.quantity) {
+      showNotification(`الكمية المتاحة: ${product.stock || 0} قطعة فقط`);
+      return false;
+    }
+  }
+
+  return true;
+}
+
+// Create cart item with options
+function createCartItemWithOptions(product) {
+  const basePrice =
+    product.category === "tshirts"
+      ? selectedOptions.ageGroup === "kids"
+        ? product.priceKids
+        : product.priceAdults
+      : product.price;
+
+  return {
+    ...product,
+    price: basePrice,
+    quantity: selectedOptions.quantity || 1,
+    selectedColor: selectedOptions.color || null,
+    selectedSize: selectedOptions.size || null,
+    selectedSleeve: selectedOptions.sleeve || null,
+    selectedAgeGroup: selectedOptions.ageGroup || null,
+    displayName: `${product.name}${
+      selectedOptions.color ? ` - ${selectedOptions.color}` : ""
+    }${selectedOptions.size ? ` - ${selectedOptions.size}` : ""}${
+      selectedOptions.sleeve
+        ? ` - ${
+            selectedOptions.sleeve === "shortSleeve" ? "كم قصير" : "كم طويل"
+          }`
+        : ""
+    }${
+      selectedOptions.ageGroup
+        ? ` - ${selectedOptions.ageGroup === "kids" ? "أطفال" : "كبار"}`
+        : ""
+    }`,
+  };
+}
+
+// Add to cart from modal
+function addToCartFromModal(productId) {
+  const product = products.find((p) => p.id === productId);
+  if (!product) return;
+
+  // Validate required options
+  if (!validateProductOptions(product)) return;
+
+  // Check stock availability
+  if (!checkStockAvailability(product)) return;
+
+  // Create cart item with selected options
+  const cartItem = createCartItemWithOptions(product);
+
+  // Check if same item with same options already exists
+  const existingItemIndex = cart.findIndex((item) => {
+    return (
+      item.id === cartItem.id &&
+      item.selectedColor === cartItem.selectedColor &&
+      item.selectedSize === cartItem.selectedSize &&
+      item.selectedSleeve === cartItem.selectedSleeve &&
+      item.selectedAgeGroup === cartItem.selectedAgeGroup
+    );
+  });
+
+  if (existingItemIndex !== -1) {
+    cart[existingItemIndex].quantity += cartItem.quantity;
+  } else {
+    cart.push(cartItem);
+  }
+
+  updateCartUI();
+  showNotification("تم إضافة المنتج للسلة");
+  closeProductDetails();
+}
+
+// Buy now from modal
+function buyNowFromModal(productId) {
+  const product = products.find((p) => p.id === productId);
+  if (!product) return;
+
+  // Validate required options
+  if (!validateProductOptions(product)) return;
+
+  // Check stock availability
+  if (!checkStockAvailability(product)) return;
+
+  // Create order item with selected options
+  const orderItem = createCartItemWithOptions(product);
+
+  currentOrderType = "single";
+  currentProductId = productId;
+  orderItems = [orderItem];
+
+  closeProductDetails();
+  showOrderForm();
+}
+
+// ==================== ORDER FUNCTIONS ====================
+
+// Show order form
 function showOrderForm() {
   const modal = document.getElementById("orderModal");
   if (!modal) {
@@ -1672,6 +1755,7 @@ function showOrderForm() {
   toggleCart(false);
 }
 
+// Close order form
 function closeOrderForm() {
   const modal = document.getElementById("orderModal");
   if (modal) {
@@ -1703,6 +1787,7 @@ function closeOrderForm() {
   }
 }
 
+// Update order items UI
 function updateOrderItemsUI() {
   const orderItemsList = document.getElementById("orderItemsList");
   if (!orderItemsList) return;
@@ -1760,12 +1845,19 @@ function updateOrderItemsUI() {
   });
 }
 
+// Remove order item
 function removeOrderItem(productId) {
-  orderItems = orderItems.filter((item) => item.id !== productId);
+  const itemIndex = orderItems.findIndex((item) => item.id === productId);
+  if (itemIndex !== -1) {
+    orderItems.splice(itemIndex, 1);
+  }
 
   if (currentOrderType === "cart") {
-    cart = cart.filter((item) => item.id !== productId);
-    updateCartUI();
+    const cartIndex = cart.findIndex((item) => item.id === productId);
+    if (cartIndex !== -1) {
+      cart.splice(cartIndex, 1);
+      updateCartUI();
+    }
   }
 
   updateOrderItemsUI();
@@ -1803,6 +1895,7 @@ function updateAreas() {
   }
 }
 
+// Filter areas based on search
 function filterAreas(searchTerm) {
   const governorateSelect = document.getElementById("governorate");
   const selectedGovernorate = governorateSelect?.value;
@@ -1821,6 +1914,7 @@ function filterAreas(searchTerm) {
   );
 }
 
+// Show area dropdown
 function showAreaDropdown(filteredAreas) {
   const areaDropdown = document.getElementById("areaDropdown");
   if (!areaDropdown) return;
@@ -1850,6 +1944,7 @@ function showAreaDropdown(filteredAreas) {
   areaDropdown.style.display = "block";
 }
 
+// Select area
 function selectArea(area) {
   const areaInput = document.getElementById("area");
   const areaDropdown = document.getElementById("areaDropdown");
@@ -1869,306 +1964,69 @@ function selectArea(area) {
   }
 }
 
-// Utility functions
-function showNotification(message) {
-  const notification = document.createElement("div");
-  notification.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #4CAF50;
-    color: white;
-    padding: 15px 20px;
-    border-radius: 8px;
-    z-index: 1002;
-    font-family: 'Cairo', sans-serif;
-    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-    animation: slideIn 0.3s ease;
-  `;
-  notification.textContent = message;
-  document.body.appendChild(notification);
-
-  setTimeout(() => {
-    notification.remove();
-  }, 3000);
-}
-
-function showFullImage(imageSrc, productName) {
-  const modal = document.getElementById("imageModal");
-  const modalImg = document.getElementById("fullImage");
-  const captionText = document.getElementById("imageCaption");
-
-  if (modal && modalImg && captionText) {
-    modal.style.display = "block";
-    modalImg.src = imageSrc;
-    captionText.textContent = productName;
-  }
-}
-
-function closeFullImage() {
-  const modal = document.getElementById("imageModal");
-  if (modal) {
-    modal.style.display = "none";
-  }
-}
-
-function openWhatsApp() {
-  console.log("Opening WhatsApp...");
-  const message = "مرحبًا، أريد الاستفسار عن منتجاتكم";
-  const whatsappUrl = `https://wa.me/+96598088660?text=${encodeURIComponent(
-    message
-  )}`;
-
-  try {
-    window.open(whatsappUrl, "_blank");
-    console.log("✅ WhatsApp opened successfully");
-  } catch (error) {
-    console.error("❌ Failed to open WhatsApp:", error);
-    showNotification("خطأ في فتح واتساب");
-  }
-}
-
-// Admin functions
-function handleLogoClick() {
-  logoClickCount++;
-  if (logoClickTimer) {
-    clearTimeout(logoClickTimer);
-  }
-  logoClickTimer = setTimeout(() => {
-    logoClickCount = 0;
-  }, 3000);
-
-  if (logoClickCount >= 7) {
-    logoClickCount = 0;
-    showSecretMessage();
-    showAdminPanel();
-  }
-}
-
-function showSecretMessage() {
-  const secretMessage = document.getElementById("secretMessage");
-  if (secretMessage) {
-    secretMessage.style.display = "block";
-    setTimeout(() => {
-      secretMessage.style.display = "none";
-    }, 3000);
-  }
-}
-
-function showAdminPanel() {
-  const adminPanel = document.getElementById("adminPanel");
-  const adminOverlay = document.getElementById("adminOverlay");
-
-  if (!adminPanel || !adminOverlay) {
-    console.error("❌ Admin panel elements not found");
-    return;
-  }
-
-  adminPanel.style.display = "block";
-  adminOverlay.style.display = "block";
-  populateProductSelect();
-}
-
-function closeAdminPanel() {
-  const adminPanel = document.getElementById("adminPanel");
-  const adminOverlay = document.getElementById("adminOverlay");
-
-  if (adminPanel) adminPanel.style.display = "none";
-  if (adminOverlay) adminOverlay.style.display = "none";
-}
-
-function populateProductSelect() {
-  const productSelect = document.getElementById("productSelect");
-  if (!productSelect) return;
-
-  productSelect.innerHTML = '<option value="">اختر المنتج</option>';
-
-  products.forEach((product) => {
-    const option = document.createElement("option");
-    option.value = product.id;
-    const totalStock = getTotalStock(product);
-    option.textContent = `${product.name} (${totalStock} قطعة)`;
-    productSelect.appendChild(option);
-  });
-}
-
-function checkAdminPassword() {
-  const emailInput = document.getElementById("adminEmail");
-  const passwordInput = document.getElementById("adminPassword");
-  const email = emailInput?.value;
-  const password = passwordInput?.value;
-
-  // Simple admin check (in production, use proper authentication)
-  if (email === "admin@alnourain.com" && password === "admin123") {
-    document.getElementById("passwordSection").style.display = "none";
-    document.getElementById("adminControls").style.display = "block";
-    showNotification("تم تسجيل الدخول بنجاح! 🔓");
-    updateStockStatus();
-  } else {
-    showNotification("البريد الإلكتروني أو كلمة المرور غير صحيحة! ❌");
-    if (passwordInput) {
-      passwordInput.style.borderColor = "#D32F2F";
-      passwordInput.style.backgroundColor = "#FFEBEE";
-      setTimeout(() => {
-        passwordInput.style.borderColor = "#E0E0E0";
-        passwordInput.style.backgroundColor = "white";
-      }, 2000);
-    }
-  }
-}
-
-function updateSelectedProductStock() {
-  const productSelect = document.getElementById("productSelect");
-  const newStockInput = document.getElementById("newStock");
-
-  if (!productSelect || !newStockInput) return;
-
-  const productId = Number.parseInt(productSelect.value);
-  const newStock = Number.parseInt(newStockInput.value);
-
-  if (isNaN(productId) || isNaN(newStock) || newStock < 0) {
-    showNotification("يرجى إدخال منتج وكمية صحيحة");
-    return;
-  }
-
-  const product = products.find((p) => p.id === productId);
-  if (!product) {
-    showNotification("المنتج غير موجود");
-    return;
-  }
-
-  if (product.detailedStock) {
-    // For detailed stock products, distribute evenly
-    const totalVariants = Object.values(product.detailedStock).reduce(
-      (total, sleeveType) => {
-        return (
-          total +
-          Object.values(sleeveType).reduce((subTotal, ageGroup) => {
-            return subTotal + Object.keys(ageGroup).length;
-          }, 0)
-        );
-      },
-      0
-    );
-
-    const stockPerVariant = Math.floor(newStock / totalVariants);
-
-    Object.keys(product.detailedStock).forEach((sleeve) => {
-      Object.keys(product.detailedStock[sleeve]).forEach((ageGroup) => {
-        Object.keys(product.detailedStock[sleeve][ageGroup]).forEach((size) => {
-          product.detailedStock[sleeve][ageGroup][size] = stockPerVariant;
-        });
-      });
-    });
-  } else {
-    product.stock = newStock;
-  }
-
-  generateProducts();
-  populateProductSelect();
-  productSelect.value = productId;
-  updateStockStatus();
-  newStockInput.value = "";
-  showNotification(`تم تحديث مخزون ${product.name} إلى ${newStock} قطعة`);
-}
-
-function restockAllProducts(defaultStock = 10) {
-  products.forEach((product) => {
-    if (product.detailedStock) {
-      // For detailed stock products, distribute evenly
-      Object.keys(product.detailedStock).forEach((sleeve) => {
-        Object.keys(product.detailedStock[sleeve]).forEach((ageGroup) => {
-          Object.keys(product.detailedStock[sleeve][ageGroup]).forEach(
-            (size) => {
-              product.detailedStock[sleeve][ageGroup][size] = defaultStock;
-            }
-          );
-        });
-      });
-    } else {
-      product.stock = defaultStock;
-    }
-  });
-
-  generateProducts();
-  populateProductSelect();
-  updateStockStatus();
-  showNotification(`تم إعادة تعبئة جميع المنتجات إلى ${defaultStock} قطعة`);
-}
-
-function updateStockStatus() {
-  const stockStatus = document.getElementById("stockStatus");
-  if (!stockStatus) return;
-
-  let html = "<strong>حالة المخزون الحالية:</strong><br><br>";
-
-  products.forEach((product) => {
-    const totalStock = getTotalStock(product);
-    const status = getStockStatus(product);
-    const color =
-      status.class === "stock-out"
-        ? "#D32F2F"
-        : status.class === "stock-low"
-        ? "#F57C00"
-        : "#2E7D32";
-
-    const price =
-      product.category === "tshirts"
-        ? `${product.priceKids}/${product.priceAdults}`
-        : product.price;
-    html += `<div style="margin-bottom: 8px;">
-      <span style="font-weight: bold;">${product.name}:</span> 
-      <span style="color: ${color};">${totalStock} قطعة - ${price} دك</span>
-    </div>`;
-  });
-
-  stockStatus.innerHTML = html;
-}
-
-// Order submission
+// Send order via EmailJS
 async function sendOrderViaEmailJS(orderData) {
   try {
+    // Check if EmailJS is available
     if (!window.emailjs) {
-      throw new Error("EmailJS is not available");
+      console.error("❌ EmailJS SDK is not loaded");
+      throw new Error(
+        "EmailJS SDK is not available. Please ensure the EmailJS script is included."
+      );
     }
 
+    // Ensure EmailJS is initialized
+    if (!window.emailjs._userID) {
+      console.log("🔄 Initializing EmailJS...");
+      window.emailjs.init("lBhyMGQmJ3IJUTDW8");
+    }
+
+    // Prepare email data
     const emailData = {
       to_email: "orders@alnourain.com",
       from_name: "متجر النورين",
       subject: `طلب جديد من ${orderData.customerName}`,
-      customer_name: orderData.customerName,
+      name: orderData.customerName,
       phone: orderData.phoneNumber,
       governorate: orderData.governorate,
       area: orderData.area,
       block: orderData.block,
       street: orderData.street,
-      avenue: orderData.avenue,
+      avenue: orderData.avenue || "غير محدد",
       house: orderData.house,
-      apartment: orderData.apartment,
-      floor: orderData.floor,
+      apartment: orderData.apartment || "غير محدد",
+      floor: orderData.floor || "غير محدد",
       order_details: orderData.orderDetails,
-      total: orderData.totalAmount,
-      delivery_cost: orderData.deliveryCost,
-      final_total: orderData.finalTotal,
+      total: orderData.totalAmount.toFixed(2),
+      delivery_cost: orderData.deliveryCost.toFixed(2),
+      final_total: orderData.finalTotal.toFixed(2),
       order_date: orderData.orderDate,
     };
 
-    console.log("📤 Sending email via EmailJS:", emailData);
+    console.log("📤 Preparing to send email via EmailJS:", emailData);
 
+    // Send email using EmailJS
     const response = await window.emailjs.send(
-      "service_pv6mbu9",
-      "template_my1fbf6",
+      "service_b40f9eq", // Your service ID
+      "template_fszp79g", // Your template ID
       emailData
     );
 
     console.log("✅ Email sent successfully:", response);
-    return { success: true, response: "Order sent via EmailJS" };
+    return { success: true, response: "Order sent successfully via EmailJS" };
   } catch (error) {
-    console.error("❌ Error sending email:", error.message);
-    return { success: false, error: error.message };
+    console.error("❌ Error sending email via EmailJS:", {
+      message: error.message,
+      status: error.status,
+      text: error.text || "No additional error info",
+    });
+    return {
+      success: false,
+      error: `فشل في إرسال الطلب: ${error.message || "خطأ غير معروف"}`,
+    };
   }
 }
-
+// Handle order submit
 async function handleOrderSubmit(e) {
   e.preventDefault();
 
@@ -2247,7 +2105,7 @@ async function handleOrderSubmit(e) {
       for (const orderItem of orderItems) {
         const product = products.find((p) => p.id === orderItem.id);
         if (product) {
-          updateDetailedStock(
+          await updateDetailedStock(
             product,
             orderItem.selectedSleeve,
             orderItem.selectedAgeGroup,
@@ -2260,11 +2118,11 @@ async function handleOrderSubmit(e) {
       generateProducts();
 
       if (currentOrderType === "cart") {
-        cart = [];
+        cart.length = 0;
         updateCartUI();
       }
 
-      orderItems = [];
+      orderItems.length = 0;
 
       setTimeout(() => {
         closeOrderForm();
@@ -2285,7 +2143,469 @@ async function handleOrderSubmit(e) {
   }
 }
 
-// Keyboard shortcuts
+// Setup area input listeners
+function setupAreaListeners() {
+  const areaInput = document.getElementById("area");
+  if (areaInput) {
+    areaInput.addEventListener("input", function () {
+      const searchTerm = this.value;
+      const filteredAreas = filterAreas(searchTerm);
+      showAreaDropdown(filteredAreas);
+    });
+
+    document.addEventListener("click", (e) => {
+      const areaDropdown = document.getElementById("areaDropdown");
+      if (
+        areaDropdown &&
+        !areaInput.contains(e.target) &&
+        !areaDropdown.contains(e.target)
+      ) {
+        areaDropdown.style.display = "none";
+      }
+    });
+  }
+}
+
+// ==================== ADMIN FUNCTIONS ====================
+
+// Handle logo clicks for admin access
+function handleLogoClick() {
+  logoClickCount++;
+  if (logoClickTimer) {
+    clearTimeout(logoClickTimer);
+  }
+  logoClickTimer = setTimeout(() => {
+    logoClickCount = 0;
+  }, 3000);
+
+  if (logoClickCount >= 7) {
+    logoClickCount = 0;
+    showSecretMessage();
+    showAdminDashboard();
+  }
+}
+
+// Show secret message
+function showSecretMessage() {
+  const secretMessage = document.getElementById("secretMessage");
+  if (secretMessage) {
+    secretMessage.style.display = "block";
+    setTimeout(() => {
+      secretMessage.style.display = "none";
+    }, 3000);
+  }
+}
+
+// Show full-page admin dashboard
+function showAdminDashboard() {
+  // Create admin dashboard if it doesn't exist
+  let adminDashboard = document.getElementById("adminDashboard");
+  if (!adminDashboard) {
+    adminDashboard = document.createElement("div");
+    adminDashboard.id = "adminDashboard";
+    adminDashboard.className = "admin-dashboard";
+    document.body.appendChild(adminDashboard);
+  }
+
+  adminDashboard.innerHTML = `
+    <div class="admin-header">
+      <h1>🔒 لوحة إدارة متجر النورين</h1>
+      <button class="close-admin-btn" onclick="closeAdminDashboard()">
+        <i class="fas fa-times"></i> إغلاق
+      </button>
+    </div>
+
+    <div class="admin-content">
+      <!-- Login Section -->
+      <div id="adminLoginSection" class="admin-section">
+        <div class="admin-card">
+          <h2>تسجيل الدخول</h2>
+          <form id="adminLoginForm">
+            <div class="form-group">
+              <label for="adminEmail">البريد الإلكتروني:</label>
+              <input type="email" id="adminEmail" placeholder="أدخل البريد الإلكتروني" required />
+            </div>
+            <div class="form-group">
+              <label for="adminPassword">كلمة المرور:</label>
+              <input type="password" id="adminPassword" placeholder="أدخل كلمة المرور" required />
+            </div>
+            <button type="submit" class="btn btn-primary">تسجيل الدخول</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Admin Controls -->
+      <div id="adminControls" class="admin-section" style="display: none;">
+        <div class="admin-grid">
+          <!-- Firebase Controls -->
+          <!-- Quick Stock Actions -->
+          <div class="admin-card">
+            <h3>📦 إجراءات سريعة</h3>
+            <div class="admin-actions">
+              <button onclick="restockAllProducts(10)" class="btn btn-warning">
+                <i class="fas fa-boxes"></i> إعادة تعبئة الكل (10 قطع)
+              </button>
+              <button onclick="restockAllProducts(20)" class="btn btn-warning">
+                <i class="fas fa-boxes"></i> إعادة تعبئة الكل (20 قطعة)
+              </button>
+            </div>
+          </div>
+
+          <!-- Stock Overview -->
+          <div class="admin-card full-width">
+            <h3>📊 نظرة عامة على المخزون</h3>
+            <div id="stockOverview" class="stock-overview">
+              <!-- Will be populated by JavaScript -->
+            </div>
+          </div>
+
+          <!-- Detailed Stock Management -->
+          <div class="admin-card full-width">
+            <h3>🎯 إدارة المخزون التفصيلي</h3>
+            <div class="product-selector">
+              <label for="productSelect">اختر المنتج:</label>
+              <select id="productSelect" onchange="showProductStockDetails()">
+                <option value="">اختر المنتج</option>
+              </select>
+            </div>
+            <div id="productStockDetails" class="product-stock-details">
+              <!-- Will be populated when product is selected -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  adminDashboard.style.display = "block";
+  document.body.style.overflow = "hidden";
+
+  // Setup login form
+  setupAdminLogin();
+}
+
+// Setup admin login form
+function setupAdminLogin() {
+  const loginForm = document.getElementById("adminLoginForm");
+  if (loginForm) {
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      checkAdminPassword();
+    });
+  }
+
+  const passwordInput = document.getElementById("adminPassword");
+  if (passwordInput) {
+    passwordInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        checkAdminPassword();
+      }
+    });
+  }
+}
+
+// Check admin password using Firebase Auth
+async function checkAdminPassword() {
+  const emailInput = document.getElementById("adminEmail");
+  const passwordInput = document.getElementById("adminPassword");
+  const email = emailInput?.value;
+  const password = passwordInput?.value;
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    console.log("✅ Admin logged in:", userCredential.user.email);
+    document.getElementById("adminLoginSection").style.display = "none";
+    document.getElementById("adminControls").style.display = "block";
+    isAdminLoggedIn = true;
+    showNotification("تم تسجيل الدخول بنجاح! 🔓");
+
+    // Initialize admin dashboard
+    populateProductSelect();
+    updateStockOverview();
+  } catch (error) {
+    console.error("❌ Login error:", error.message);
+    showNotification("البريد الإلكتروني أو كلمة المرور غير صحيحة! ❌");
+    if (passwordInput) {
+      passwordInput.style.borderColor = "#D32F2F";
+      passwordInput.style.backgroundColor = "#FFEBEE";
+      setTimeout(() => {
+        passwordInput.style.borderColor = "";
+        passwordInput.style.backgroundColor = "";
+      }, 2000);
+    }
+  }
+}
+
+// Close admin dashboard
+function closeAdminDashboard() {
+  const adminDashboard = document.getElementById("adminDashboard");
+  if (adminDashboard) {
+    adminDashboard.style.display = "none";
+    document.body.style.overflow = "";
+  }
+  isAdminLoggedIn = false;
+}
+
+// Populate product select dropdown
+function populateProductSelect() {
+  const productSelect = document.getElementById("productSelect");
+  if (!productSelect) return;
+
+  productSelect.innerHTML = '<option value="">اختر المنتج</option>';
+
+  products.forEach((product) => {
+    const option = document.createElement("option");
+    option.value = product.id;
+    const totalStock = getTotalStock(product);
+    option.textContent = `${product.name} (${totalStock} قطعة)`;
+    productSelect.appendChild(option);
+  });
+}
+
+// Show product stock details
+function showProductStockDetails() {
+  const productSelect = document.getElementById("productSelect");
+  const productStockDetails = document.getElementById("productStockDetails");
+
+  if (!productSelect || !productStockDetails) return;
+
+  const productId = Number.parseInt(productSelect.value);
+  if (!productId) {
+    productStockDetails.innerHTML = "";
+    return;
+  }
+
+  const product = products.find((p) => p.id === productId);
+  if (!product) return;
+
+  let html = `<h4>${product.name}</h4>`;
+
+  if (product.detailedStock) {
+    // Detailed stock for t-shirts
+    html += '<div class="detailed-stock-grid">';
+
+    Object.entries(product.detailedStock).forEach(([sleeve, sleeveData]) => {
+      const sleeveLabel = sleeve === "shortSleeve" ? "كم قصير" : "كم طويل";
+      html += `<div class="sleeve-section">
+        <h5>${sleeveLabel}</h5>`;
+
+      Object.entries(sleeveData).forEach(([ageGroup, sizes]) => {
+        const ageLabel = ageGroup === "kids" ? "أطفال" : "كبار";
+        html += `<div class="age-group">
+          <h6>${ageLabel}</h6>
+          <div class="sizes-grid">`;
+
+        Object.entries(sizes).forEach(([size, stock]) => {
+          html += `
+            <div class="size-item">
+              <label>${size}:</label>
+              <div class="stock-controls">
+                <button onclick="updateSizeStock('${product.id}', '${sleeve}', '${ageGroup}', '${size}', -1)" class="btn-small">-</button>
+                <input type="number" value="${stock}" min="0" max="999" 
+                       onchange="setSizeStock('${product.id}', '${sleeve}', '${ageGroup}', '${size}', this.value)"
+                       class="stock-input">
+                <button onclick="updateSizeStock('${product.id}', '${sleeve}', '${ageGroup}', '${size}', 1)" class="btn-small">+</button>
+              </div>
+            </div>`;
+        });
+
+        html += `</div></div>`;
+      });
+
+      html += "</div>";
+    });
+
+    html += "</div>";
+  } else {
+    // Simple stock for other products
+    html += `
+      <div class="simple-stock">
+        <label>الكمية الحالية:</label>
+        <div class="stock-controls">
+          <button onclick="updateSimpleStock('${
+            product.id
+          }', -1)" class="btn-small">-</button>
+          <input type="number" value="${product.stock || 0}" min="0" max="999" 
+                 onchange="setSimpleStock('${product.id}', this.value)"
+                 class="stock-input">
+          <button onclick="updateSimpleStock('${
+            product.id
+          }', 1)" class="btn-small">+</button>
+        </div>
+      </div>`;
+  }
+
+  productStockDetails.innerHTML = html;
+}
+
+// Update size stock
+function updateSizeStock(productId, sleeve, ageGroup, size, delta) {
+  const product = products.find((p) => p.id === Number.parseInt(productId));
+  if (!product || !product.detailedStock) return;
+
+  const currentStock = product.detailedStock[sleeve][ageGroup][size];
+  const newStock = Math.max(0, currentStock + delta);
+
+  product.detailedStock[sleeve][ageGroup][size] = newStock;
+
+  // Update Firebase
+  updateProductInFirestore(product.id, {
+    detailedStock: product.detailedStock,
+  });
+
+  // Refresh displays
+  showProductStockDetails();
+  updateStockOverview();
+  generateProducts();
+}
+
+// Set size stock directly
+function setSizeStock(productId, sleeve, ageGroup, size, value) {
+  const product = products.find((p) => p.id === Number.parseInt(productId));
+  if (!product || !product.detailedStock) return;
+
+  const newStock = Math.max(0, Number.parseInt(value) || 0);
+  product.detailedStock[sleeve][ageGroup][size] = newStock;
+
+  // Update Firebase
+  updateProductInFirestore(product.id, {
+    detailedStock: product.detailedStock,
+  });
+
+  // Refresh displays
+  updateStockOverview();
+  generateProducts();
+}
+
+// Update simple stock
+function updateSimpleStock(productId, delta) {
+  const product = products.find((p) => p.id === Number.parseInt(productId));
+  if (!product) return;
+
+  const currentStock = product.stock || 0;
+  const newStock = Math.max(0, currentStock + delta);
+
+  product.stock = newStock;
+
+  // Update Firebase
+  updateProductInFirestore(product.id, { stock: newStock });
+
+  // Refresh displays
+  showProductStockDetails();
+  updateStockOverview();
+  generateProducts();
+}
+
+// Set simple stock directly
+function setSimpleStock(productId, value) {
+  const product = products.find((p) => p.id === Number.parseInt(productId));
+  if (!product) return;
+
+  const newStock = Math.max(0, Number.parseInt(value) || 0);
+  product.stock = newStock;
+
+  // Update Firebase
+  updateProductInFirestore(product.id, { stock: newStock });
+
+  // Refresh displays
+  updateStockOverview();
+  generateProducts();
+}
+
+// Update stock overview
+function updateStockOverview() {
+  const stockOverview = document.getElementById("stockOverview");
+  if (!stockOverview) return;
+
+  let html = '<div class="stock-grid">';
+
+  products.forEach((product) => {
+    const totalStock = getTotalStock(product);
+    const status = getStockStatus(product);
+    const color =
+      status.class === "stock-out"
+        ? "#D32F2F"
+        : status.class === "stock-low"
+        ? "#F57C00"
+        : "#2E7D32";
+
+    const price =
+      product.category === "tshirts"
+        ? `${product.priceKids}/${product.priceAdults}`
+        : product.price;
+
+    html += `
+      <div class="stock-item" style="border-left: 4px solid ${color};">
+        <div class="stock-item-header">
+          <h4>${product.name}</h4>
+          <span class="stock-badge" style="background-color: ${color};">${totalStock}</span>
+        </div>
+        <div class="stock-item-details">
+          <span>السعر: ${price} دك</span>
+          <span style="color: ${color};">${status.text}</span>
+        </div>
+      </div>`;
+  });
+
+  html += "</div>";
+  stockOverview.innerHTML = html;
+}
+
+// Restock all products
+function restockAllProducts(defaultStock = 10) {
+  products.forEach((product) => {
+    if (product.detailedStock) {
+      // For detailed stock products, distribute evenly
+      Object.keys(product.detailedStock).forEach((sleeve) => {
+        Object.keys(product.detailedStock[sleeve]).forEach((ageGroup) => {
+          Object.keys(product.detailedStock[sleeve][ageGroup]).forEach(
+            (size) => {
+              product.detailedStock[sleeve][ageGroup][size] = defaultStock;
+            }
+          );
+        });
+      });
+      updateProductInFirestore(product.id, {
+        detailedStock: product.detailedStock,
+      });
+    } else {
+      product.stock = defaultStock;
+      updateProductInFirestore(product.id, { stock: defaultStock });
+    }
+  });
+
+  generateProducts();
+  updateStockOverview();
+  showProductStockDetails();
+  showNotification(`تم إعادة تعبئة جميع المنتجات إلى ${defaultStock} قطعة`);
+}
+
+// Upload data to Firebase
+function uploadDataToFirebase() {
+  uploadDataToFirestore().then((success) => {
+    if (success) {
+      populateProductSelect();
+      updateStockOverview();
+      generateProducts();
+    }
+  });
+}
+
+// Load data from Firebase
+function loadDataFromFirebase() {
+  loadDataFromFirestore().then(() => {
+    populateProductSelect();
+    updateStockOverview();
+    generateProducts();
+    showNotification("تم تحميل البيانات من Firebase بنجاح!");
+  });
+}
+
+// Handle keyboard shortcuts
 function handleKeyboardShortcuts(e) {
   const secretCode = ["KeyA", "KeyD", "KeyM", "KeyI", "KeyN"];
   secretSequence.push(e.code);
@@ -2298,17 +2618,83 @@ function handleKeyboardShortcuts(e) {
     secretSequence.length === 5 &&
     secretSequence.join("") === secretCode.join("")
   ) {
-    secretSequence = [];
+    secretSequence.length = 0;
     showSecretMessage();
-    showAdminPanel();
+    showAdminDashboard();
   }
 
   if (e.ctrlKey && e.shiftKey && e.code === "KeyL") {
-    showAdminPanel();
+    showAdminDashboard();
   }
 }
 
-// Event listeners setup
+// ==================== UTILITY FUNCTIONS ====================
+
+// Show notification
+function showNotification(message) {
+  const notification = document.createElement("div");
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #4CAF50;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    z-index: 1002;
+    font-family: 'Cairo', sans-serif;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    animation: slideIn 0.3s ease;
+  `;
+  notification.textContent = message;
+  document.body.appendChild(notification);
+
+  setTimeout(() => {
+    notification.remove();
+  }, 3000);
+}
+
+// Show full image modal
+function showFullImage(imageSrc, productName) {
+  const modal = document.getElementById("imageModal");
+  const modalImg = document.getElementById("fullImage");
+  const captionText = document.getElementById("imageCaption");
+
+  if (modal && modalImg && captionText) {
+    modal.style.display = "block";
+    modalImg.src = imageSrc;
+    captionText.textContent = productName;
+  }
+}
+
+// Close full image modal
+function closeFullImage() {
+  const modal = document.getElementById("imageModal");
+  if (modal) {
+    modal.style.display = "none";
+  }
+}
+
+// Open WhatsApp
+function openWhatsApp() {
+  console.log("Opening WhatsApp...");
+  const message = "مرحبًا، أريد الاستفسار عن منتجاتكم";
+  const whatsappUrl = `https://wa.me/+96598088660?text=${encodeURIComponent(
+    message
+  )}`;
+
+  try {
+    window.open(whatsappUrl, "_blank");
+    console.log("✅ WhatsApp opened successfully");
+  } catch (error) {
+    console.error("❌ Failed to open WhatsApp:", error);
+    showNotification("خطأ في فتح واتساب");
+  }
+}
+
+// ==================== INITIALIZATION ====================
+
+// Setup event listeners
 function setupEventListeners() {
   const logo = document.querySelector(".logo");
   if (logo) {
@@ -2340,81 +2726,78 @@ function setupEventListeners() {
     });
   });
 
-  const areaInput = document.getElementById("area");
-  if (areaInput) {
-    areaInput.addEventListener("input", function () {
-      const searchTerm = this.value;
-      const filteredAreas = filterAreas(searchTerm);
-      showAreaDropdown(filteredAreas);
-    });
-
-    document.addEventListener("click", (e) => {
-      const areaDropdown = document.getElementById("areaDropdown");
-      if (
-        areaDropdown &&
-        !areaInput.contains(e.target) &&
-        !areaDropdown.contains(e.target)
-      ) {
-        areaDropdown.style.display = "none";
-      }
-    });
-  }
-
-  const passwordInput = document.getElementById("adminPassword");
-  if (passwordInput) {
-    passwordInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        checkAdminPassword();
-      }
-    });
-  }
-
+  // Order form
   const orderForm = document.getElementById("orderForm");
   if (orderForm) {
     orderForm.addEventListener("submit", handleOrderSubmit);
   }
 
+  // Setup area listeners
+  setupAreaListeners();
+
+  // Modal close listeners
   window.addEventListener("click", (event) => {
-    const modal = document.getElementById("orderModal");
-    if (event.target === modal) {
+    const orderModal = document.getElementById("orderModal");
+    if (event.target === orderModal) {
       closeOrderForm();
+    }
+
+    const imageModal = document.getElementById("imageModal");
+    if (event.target === imageModal) {
+      closeFullImage();
     }
   });
 
+  // Keyboard shortcuts
   document.addEventListener("keydown", handleKeyboardShortcuts);
-
-  const imageModal = document.getElementById("imageModal");
-  if (imageModal) {
-    imageModal.addEventListener("click", (event) => {
-      if (event.target === imageModal) {
-        closeFullImage();
-      }
-    });
-  }
 }
 
-// Global function assignments
+// Global function assignments for HTML onclick handlers
 window.toggleCart = toggleCart;
 window.openWhatsApp = openWhatsApp;
 window.showOrderForm = showOrderForm;
 window.closeOrderForm = closeOrderForm;
 window.updateAreas = updateAreas;
 window.checkAdminPassword = checkAdminPassword;
-window.updateSelectedProductStock = updateSelectedProductStock;
-window.restockAllProducts = restockAllProducts;
-window.closeAdminPanel = closeAdminPanel;
+window.closeAdminDashboard = closeAdminDashboard;
 window.closeFullImage = closeFullImage;
 window.closeProductDetails = closeProductDetails;
 window.addToCartFromModal = addToCartFromModal;
 window.buyNowFromModal = buyNowFromModal;
 window.changeQuantity = changeQuantity;
+window.showProductStockDetails = showProductStockDetails;
+window.updateSizeStock = updateSizeStock;
+window.setSizeStock = setSizeStock;
+window.updateSimpleStock = updateSimpleStock;
+window.setSimpleStock = setSimpleStock;
+window.restockAllProducts = restockAllProducts;
+window.uploadDataToFirebase = uploadDataToFirebase;
+window.loadDataFromFirebase = loadDataFromFirebase;
 
 // Initialize app
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   console.log("🚀 Initializing Al-Nourain store...");
 
+  // Show initial products immediately
+  console.log("📦 Loading default products...");
   generateProducts();
+
+  // Try to load data from Firebase in background
+  console.log("🔄 Attempting to load from Firebase...");
+  const firebaseLoaded = await loadDataFromFirestore();
+
+  if (firebaseLoaded) {
+    console.log("✅ Firebase data loaded, refreshing products...");
+    generateProducts();
+  } else {
+    console.log("⚠️ Using default products, uploading to Firebase...");
+    // Auto-upload to Firebase if no data found
+    await uploadDataToFirestore();
+  }
+
+  // Setup UI
   setupEventListeners();
+  updateCartUI();
 
   console.log("🎉 Al-Nourain store initialized successfully!");
 });
