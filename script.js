@@ -322,10 +322,23 @@ const defaultProducts = [
     material: "قطن 100%",
     detailedStock: {
       shortSleeve: {
+        kids: {
+          "6M": 2,
+          "1Y": 2,
+          "2Y": 2,
+          "3Y": 2,
+          "4Y": 2,
+          "5-6Y": 3,
+          "7-8Y": 3,
+          "9-10Y": 3,
+          "11-12Y": 3,
+        },
         adults: {
           S: 2,
           M: 2,
           L: 3,
+          XL: 4,
+          XXL: 4,
         },
       },
       longSleeve: {
@@ -426,7 +439,7 @@ const defaultProducts = [
   {
     id: 5,
     name: " تصميم ياحُسين ٢٤ ",
-    priceKids: 4.5,
+    priceKids: 4.0,
     priceAdults: 5.5,
     images: {
       shortSleeveAdults: "images/tshirt-8/adults-short-8.jpg",
