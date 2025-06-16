@@ -815,7 +815,6 @@ const defaultProducts = [
     description: "مدالية أنيقة لتعليق في السيارة",
   },
   // فواصل كتب
-
   {
     id: 19,
     name: "فاصل قرآن كريم خشبي",
@@ -824,6 +823,57 @@ const defaultProducts = [
     stock: 15,
     category: "book",
     note: "يتم الاختيار بشكل عشوائي ",
+  },
+  // ستيكرات معدن
+  {
+    id: 20,
+    name: "قمر بني هاشم ",
+    price: 1.25,
+    defaultImage: "images/stickers/stickers-1",
+    stock: 15,
+    category: "stickers",
+    dimensions: "30mm",
+    material: "معدن",
+  },
+  {
+    id: 21,
+    name: "ياحُسين ",
+    price: 1.25,
+    defaultImage: "images/stickers/stickers-2",
+    stock: 15,
+    category: "stickers",
+    dimensions: "40mm",
+    material: "معدن",
+  },
+  {
+    id: 22,
+    name: "ياحُسين ",
+    price: 1.25,
+    defaultImage: "images/stickers/stickers-3",
+    stock: 15,
+    category: "stickers",
+    dimensions: "40mm",
+    material: "معدن",
+  },
+  {
+    id: 23,
+    name: "يازينب ",
+    price: 1.25,
+    defaultImage: "images/stickers/stickers-4",
+    stock: 15,
+    category: "stickers",
+    dimensions: "30mm",
+    material: "معدن",
+  },
+  {
+    id: 24,
+    name: "مجموعة مُحرم",
+    price: 3.75,
+    defaultImage: "images/stickers/stickers-5",
+    stock: 15,
+    category: "stickers",
+    dimensions: "30mm",
+    material: "معدن",
   },
 ];
 
