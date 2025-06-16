@@ -1,3 +1,33 @@
+// Import Firebase services
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  doc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  addDoc,
+  serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-analytics.js";
+
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyBxYrW66tvHLnSXITm8t5Q9XVEd7JqNQ2c",
+  authDomain: "alnorain2025.firebaseapp.com",
+  projectId: "alnorain2025",
+  storageBucket: "alnorain2025.firebasestorage.app",
+  messagingSenderId: "904034591643",
+  appId: "1:904034591643:web:de632a6301ac75b9e8373e",
+  measurementId: "G-CT4LRD49EW",
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const analytics = getAnalytics(app);
+
 // Detailed delivery pricing for Kuwait areas
 const deliveryPrices = {
   // AL-ASIMAH (Kuwait City)
@@ -693,7 +723,7 @@ const defaultProducts = [
     description: "حقيبة قماشية عملية وأنيقة",
     material: "قماش قطني عالي الجودة",
     dimensions: "29 × 24 سم",
-    note: "فقط حقيبة الكبيرة بدون السجادة الصغيرة",
+    note: "فقط حقيبة الكبيرة بدون السجادة الصغيرة",
   },
 
   // سجادة صلاة صغيرة
@@ -706,7 +736,7 @@ const defaultProducts = [
     category: "carpets",
     material: "   خام لينن ",
     dimensions: "  15 × 15 سم للسجادة و للحقيبة 9 × 8 سم",
-    note: "طباعة الحقيبة من الخلف ",
+    note: "طباعة الحقيبة من الخلف ",
   },
   {
     id: 14,
@@ -718,7 +748,7 @@ const defaultProducts = [
     description: "سجادة صلاة صغيرة عالية الجودة",
     material: "   خام لينن ",
     dimensions: "  15 × 15 سم للسجادة و للحقيبة 9 × 8 سم",
-    note: " التربة تباع بشكل منفصل ",
+    note: " التربة تباع بشكل منفصل ",
   },
   {
     id: 15,
@@ -749,7 +779,6 @@ const defaultProducts = [
     stock: 4,
     category: "accessories",
     description: "مدالية أنيقة لتعليق في السيارة",
-    //material: "معدن مطلي بالذهب",
     dimensions: "4 insh",
   },
   {
@@ -760,8 +789,6 @@ const defaultProducts = [
     stock: 73,
     category: "accessories",
     description: "مدالية أنيقة لتعليق في السيارة",
-    //material: "معدن مطلي بالذهب",
-    //dimensions: "4 insh",
   },
   {
     id: 19,
@@ -770,22 +797,8 @@ const defaultProducts = [
     defaultImage: "images/medal/medal-3.jpg",
     stock: 15,
     category: "book",
-    //dimensions: "4 insh",
-    note: "يتم الاختيار بشكل عشوائي ",
+    note: "يتم الاختيار بشكل عشوائي ",
   },
-  // لاصق معدني
-  // {
-  //   id: 8,
-  //   name: "لاصق معدني 'تصميم النجمة'",
-  //   price: 2.5,
-  //   defaultImage: "images/metal-sticker-1.jpg",
-  //   stock: 25,
-  //   category: "stickers",
-  //   description: "لاصق معدني عالي الجودة",
-  //   material: "معدن مقاوم للصدأ",
-  //   dimensions: "5 × 5 سم",
-  //   colors: ["ذهبي", "فضي"],
-  // },
 ];
 
 // Category names in Arabic
@@ -795,19 +808,21 @@ const categoryNames = {
   carpets: "سجادة صلاة صغيرة",
   stickers: "لاصق معدني",
   accessories: "مدالية - علاقة للسيارة",
+  book: "فواصل كتب",
 };
 
 // Global variables
-const products = [...defaultProducts];
-let cart = [];
+let products = [...defaultProducts];
+const cart = [];
 let currentOrderType = "cart";
 let currentProductId = null;
 let orderItems = [];
 let currentCategory = "all";
-let logoClickCount = 0;
-let logoClickTimer = null;
-let secretSequence = [];
+const logoClickCount = 0;
+const logoClickTimer = null;
+const secretSequence = [];
 let selectedOptions = {};
+const isAdminLoggedIn = false;
 
 // Initialize EmailJS
 if (window.emailjs) {
@@ -815,6 +830,79 @@ if (window.emailjs) {
   console.log("✅ EmailJS initialized");
 } else {
   console.warn("⚠️ EmailJS not available");
+}
+
+// Firebase functions
+async function uploadDataToFirestore() {
+  if (!isAdminLoggedIn) {
+    showNotification("يجب تسجيل الدخول كمدير أولاً");
+    return;
+  }
+
+  try {
+    showNotification("جاري تحميل البيانات إلى Firebase...");
+
+    // Upload products
+    for (const product of defaultProducts) {
+      await setDoc(doc(db, "products", product.id.toString()), product);
+    }
+
+    // Upload delivery prices
+    await setDoc(doc(db, "deliveryPrices", "kuwait"), deliveryPrices);
+
+    // Upload kuwait areas
+    await setDoc(doc(db, "kuwaitAreas", "governorates"), kuwaitAreas);
+
+    showNotification("✅ تم تحميل جميع البيانات بنجاح!");
+    console.log("✅ All data uploaded to Firestore");
+  } catch (error) {
+    console.error("❌ Error uploading data:", error);
+    showNotification("❌ حدث خطأ في تحميل البيانات");
+  }
+}
+
+async function loadDataFromFirestore() {
+  try {
+    console.log("🔄 Loading data from Firestore...");
+
+    // Load products
+    const productsSnapshot = await getDocs(collection(db, "products"));
+    if (!productsSnapshot.empty) {
+      const firebaseProducts = [];
+      productsSnapshot.forEach((doc) => {
+        firebaseProducts.push({ id: doc.id, ...doc.data() });
+      });
+      products = firebaseProducts;
+      console.log("✅ Products loaded from Firebase:", products.length);
+    }
+  } catch (error) {
+    console.warn("⚠️ Could not load from Firebase, using default data:", error);
+    products = [...defaultProducts];
+  }
+}
+
+async function updateProductInFirestore(productId, updates) {
+  try {
+    await updateDoc(doc(db, "products", productId.toString()), updates);
+    console.log("✅ Product updated in Firebase");
+  } catch (error) {
+    console.error("❌ Error updating product in Firebase:", error);
+  }
+}
+
+async function saveOrderToFirestore(orderData) {
+  try {
+    const docRef = await addDoc(collection(db, "orders"), {
+      ...orderData,
+      createdAt: serverTimestamp(),
+      status: "pending",
+    });
+    console.log("✅ Order saved to Firebase with ID:", docRef.id);
+    return docRef.id;
+  } catch (error) {
+    console.error("❌ Error saving order:", error);
+    throw error;
+  }
 }
 
 // Stock management functions for detailed inventory
@@ -846,17 +934,31 @@ function getAvailableStock(product, sleeve, ageGroup, size) {
   return getTotalStock(product);
 }
 
-function updateDetailedStock(product, sleeve, ageGroup, size, quantity) {
+async function updateDetailedStock(product, sleeve, ageGroup, size, quantity) {
   if (!product.detailedStock) {
+    // For simple products (non-detailed stock)
     product.stock = Math.max(0, (product.stock || 0) - quantity);
+
+    // Update in Firebase
+    if (isAdminLoggedIn) {
+      await updateProductInFirestore(product.id, { stock: product.stock });
+    }
     return;
   }
 
+  // For detailed stock products (t-shirts)
   if (product.detailedStock[sleeve]?.[ageGroup]?.[size] !== undefined) {
     product.detailedStock[sleeve][ageGroup][size] = Math.max(
       0,
       product.detailedStock[sleeve][ageGroup][size] - quantity
     );
+
+    // Update in Firebase
+    if (isAdminLoggedIn) {
+      await updateProductInFirestore(product.id, {
+        detailedStock: product.detailedStock,
+      });
+    }
   }
 }
 
@@ -1045,6 +1147,9 @@ function showProductDetails(productId) {
     `;
   }
 
+  // Get max stock for quantity input
+  const maxStock = product.detailedStock ? 1 : product.stock || 1;
+
   modal.innerHTML = `
     <div class="product-details-content">
       <span class="close" onclick="closeProductDetails()">×</span>
@@ -1060,14 +1165,22 @@ function showProductDetails(productId) {
           <h2 class="product-details-title">${product.name}</h2>
           ${priceDisplay}
           <div class="product-details-description">
-            <div class="detail-item">
+            ${
+              product.description
+                ? `<div class="detail-item">
               <span class="detail-label">الوصف:</span>
               <span class="detail-value">${product.description}</span>
-            </div>
-            <div class="detail-item">
+            </div>`
+                : ""
+            }
+            ${
+              product.material
+                ? `<div class="detail-item">
               <span class="detail-label">المادة:</span>
               <span class="detail-value">${product.material}</span>
-            </div>
+            </div>`
+                : ""
+            }
             ${
               product.dimensions
                 ? `<div class="detail-item"><span class="detail-label">الأبعاد:</span><span class="detail-value">${product.dimensions}</span></div>`
@@ -1089,12 +1202,16 @@ function showProductDetails(productId) {
         <div class="quantity-selector">
           <label class="option-label">الكمية:</label>
           <button class="quantity-btn" onclick="changeQuantity(-1)">-</button>
-          <input type="number" class="quantity-input" id="productQuantity" value="1" min="1" max="1">
+          <input type="number" class="quantity-input" id="productQuantity" value="1" min="1" max="${maxStock}">
           <button class="quantity-btn" onclick="changeQuantity(1)">+</button>
         </div>
         
         <div id="stockInfo" class="stock-display" style="text-align: center; margin: 10px 0; font-weight: bold;">
-          اختر المقاس لمعرفة الكمية المتاحة
+          ${
+            product.detailedStock
+              ? "اختر المقاس لمعرفة الكمية المتاحة"
+              : `متوفر: ${product.stock || 0} قطعة`
+          }
         </div>
       </div>
       
@@ -1388,6 +1505,12 @@ function checkStockAvailability(product) {
 
     if (availableStock < selectedOptions.quantity) {
       showNotification(`الكمية المتاحة: ${availableStock} قطعة فقط`);
+      return false;
+    }
+  } else {
+    // For simple products
+    if ((product.stock || 0) < selectedOptions.quantity) {
+      showNotification(`الكمية المتاحة: ${product.stock || 0} قطعة فقط`);
       return false;
     }
   }
