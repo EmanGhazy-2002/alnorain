@@ -254,8 +254,10 @@ body {
 
 .product-price {
     font-family: "Cairo", sans-serif;
-    font-size: 1.4rem;
-    color: #d32f2f;
+    font-size: 1.2rem;
+    /* Smaller font size */
+    color: #000000;
+    /* Black color */
     font-weight: 800;
     margin-bottom: 10px;
 }
@@ -416,7 +418,8 @@ body {
 
 .product-details-price {
     font-size: 1.8rem;
-    color: #d32f2f;
+    color: #000000;
+    /* Black color for price in modal */
     font-weight: bold;
     margin-bottom: 20px;
 }
@@ -549,7 +552,8 @@ body {
 }
 
 #deliveryPrice {
-    color: #d32f2f;
+    color: #000000;
+    /* Black color for delivery price */
     font-weight: bold;
 }
 
@@ -964,7 +968,8 @@ h3,
     }
 
     .product-price {
-        font-size: 1.2rem;
+        font-size: 1rem;
+        /* Smaller font size for mobile */
     }
 
     .product-details-header {
@@ -1038,7 +1043,8 @@ h3,
     }
 
     .product-price {
-        font-size: 1.1rem;
+        font-size: 0.9rem;
+        /* Smaller font size for smaller screens */
     }
 
     .btn {
