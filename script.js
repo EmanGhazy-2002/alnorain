@@ -814,9 +814,10 @@ const defaultProducts = [
     category: "accessories",
     description: "مدالية أنيقة لتعليق في السيارة",
   },
+
   {
     id: 19,
-    name: "فاصل قرن كريم خشبي",
+    name: "فاصل قرآن كريم خشبي",
     price: 0.5,
     defaultImage: "images/medal/medal-3.jpg",
     stock: 15,
