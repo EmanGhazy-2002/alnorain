@@ -712,6 +712,48 @@ const defaultProducts = [
     material: "ألياف ناعمة مقاومة للاتساخ",
     dimensions: "  15 × 15 سم للسجادة و للحقيبة 9 × 8 سم",
   },
+  {
+    id: 16,
+    name: "تربة ",
+    price: 1.0,
+    defaultImage: "images/prayer/prayer-4.jpg",
+    stock: 26,
+    category: "carpets",
+  },
+
+  // مدالية - علاقة للسيارة
+  {
+    id: 17,
+    name: "تطريز بأمانة موسى بن جعفر",
+    price: 5.5,
+    defaultImage: "images/medal/medal-1.jpg",
+    stock: 4,
+    category: "accessories",
+    description: "مدالية أنيقة لتعليق في السيارة",
+    //material: "معدن مطلي بالذهب",
+    dimensions: "4 insh",
+  },
+  {
+    id: 18,
+    name: "اني اريد اماناً يابن فاطمة",
+    price: 2.5,
+    defaultImage: "images/medal/medal-2.jpg",
+    stock: 73,
+    category: "accessories",
+    description: "مدالية أنيقة لتعليق في السيارة",
+    //material: "معدن مطلي بالذهب",
+    //dimensions: "4 insh",
+  },
+  {
+    id: 19,
+    name: "فاصل قران خشبي",
+    price: 0.5,
+    defaultImage: "images/medal/medal-3.jpg",
+    stock: 15,
+    category: "accessories",
+    //dimensions: "4 insh",
+    note: "يتم الاختيار بشكل عشوائي ",
+  },
   // لاصق معدني
   // {
   //   id: 8,
@@ -723,20 +765,6 @@ const defaultProducts = [
   //   description: "لاصق معدني عالي الجودة",
   //   material: "معدن مقاوم للصدأ",
   //   dimensions: "5 × 5 سم",
-  //   colors: ["ذهبي", "فضي"],
-  // },
-
-  // مدالية - علاقة للسيارة
-  // {
-  //   id: 10,
-  //   name: "مدالية - علاقة للسيارة",
-  //   price: 6.0,
-  //   defaultImage: "images/car-pendant-1.jpg",
-  //   stock: 15,
-  //   category: "accessories",
-  //   description: "مدالية أنيقة لتعليق في السيارة",
-  //   material: "معدن مطلي بالذهب",
-  //   dimensions: "8 × 3 سم",
   //   colors: ["ذهبي", "فضي"],
   // },
 ];
