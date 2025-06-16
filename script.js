@@ -548,7 +548,7 @@ const defaultProducts = [
   },
   {
     id: 8,
-    name: "تصميم تصميم السادة",
+    name: "تصميم السادة",
     priceKids: 8.0,
     priceAdults: 10.0,
     images: {
@@ -699,7 +699,7 @@ const defaultProducts = [
   // سجادة صلاة صغيرة
   {
     id: 13,
-    name: "سجادة صلاة طباعة ",
+    name: "جودك بسط أملي   ",
     price: 3.5,
     defaultImage: "images/prayer/prayer-1.jpg",
     stock: 1,
@@ -710,7 +710,7 @@ const defaultProducts = [
   },
   {
     id: 14,
-    name: "اللهم ارزقني شفاعة الحُسين 'تطريز'",
+    name: "اللهم ارزقني شفاعة الحُسين 'طباعة'",
     price: 3.5,
     defaultImage: "images/prayer/prayer-2.jpg",
     stock: 6,
@@ -722,7 +722,7 @@ const defaultProducts = [
   },
   {
     id: 15,
-    name: "اللهم ارزقني شفاعة الحُسين 'طباعة'",
+    name: "اللهم ارزقني شفاعة الحُسين 'تطريز'",
     price: 3.5,
     defaultImage: "images/prayer/prayer-3.jpg",
     stock: 15,
