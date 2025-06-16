@@ -28,7 +28,7 @@ body {
 }
 
 .logo {
-    height: 120px;
+    height: 100px;
     width: auto;
     order: 1;
     cursor: pointer;
