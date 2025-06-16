@@ -305,7 +305,7 @@ const defaultProducts = [
       },
     },
     colors: ["أسود"],
-    note: "اختيار أكبر من مقاسكم المعتاد برقم واحد",
+    note: "اختيار أكبر من مقاسكم المعتاد برقم واحد , غير جاهز للتوصيل من يومين الى ٤ ايام عمل لايوجد استبدال او استرجاع للتصاميم الخاصة",
   },
   {
     id: 2,
@@ -329,8 +329,8 @@ const defaultProducts = [
         },
       },
     },
-    colors: ["أبيض", "أسود", "رمادي", "كحلي"],
-    note: "متوفر للكبار فقط - نص كم",
+    colors: ["أسود"],
+    note: "اختيار أكبر من مقاسكم المعتاد برقم واحد , غير جاهز للتوصيل من يومين الى ٤ ايام عمل لايوجد استبدال او استرجاع للتصاميم الخاصة",
   },
   {
     id: 3,
@@ -377,7 +377,7 @@ const defaultProducts = [
       },
     },
     colors: ["أسود"],
-    note: "اختيار أكبر من مقاسكم المعتاد برقم واحد",
+    note: "اختيار أكبر من مقاسكم المعتاد برقم واحد , غير جاهز للتوصيل من يومين الى ٤ ايام عمل لايوجد استبدال او استرجاع للتصاميم الخاصة",
   },
   {
     id: 4,
@@ -393,56 +393,315 @@ const defaultProducts = [
     material: "قطن 100%",
     detailedStock: {
       shortSleeve: {
+        kids: {
+          "7-8Y": 2,
+          "11-12Y": 2,
+        },
+        adults: {
+          S: 1,
+        },
+      },
+      longSleeve: {
+        adults: {
+          XS: 1,
+          M: 1,
+          L: 2,
+          XL: 2,
+          XXL: 2,
+        },
+      },
+    },
+    colors: ["أسود"],
+    note: "اختيار أكبر من مقاسكم المعتاد برقم واحد , غير جاهز للتوصيل من يومين الى ٤ ايام عمل لايوجد استبدال او استرجاع للتصاميم الخاصة",
+  },
+  {
+    id: 5,
+    name: "تيشيرت تطريز ' تصميم تصميم السادة'",
+    priceKids: 8.0,
+    priceAdults: 10.0,
+    images: {
+      shortSleeveAdults: "images/tshirt-5/adults-short-5.jpg",
+    },
+    defaultImage: "images/tshirt-5/adults-short-5.jpg",
+    category: "tshirts",
+    description: "تيشيرت تطريز عالي الجودة",
+    material: "قطن 100%",
+    detailedStock: {
+      shortSleeve: {
+        kids: {
+          "6M": 2,
+          "1Y": 2,
+          "2Y": 2,
+          "3Y": 2,
+          "4Y": 2,
+          "5-6Y": 3,
+          "7-8Y": 3,
+          "9-10Y": 3,
+          "11-12Y": 3,
+        },
         adults: {
           S: 2,
           M: 2,
           L: 3,
+          XL: 4,
+          XXL: 4,
+        },
+      },
+      longSleeve: {
+        adults: {
+          XS: 2,
+          S: 2,
+          XL: 2,
+          XXL: 2,
         },
       },
     },
-    colors: ["أبيض", "أسود", "رمادي", "كحلي"],
-    note: "متوفر للكبار فقط - نص كم",
+    colors: ["أسود"],
+    note: "اختيار أكبر من مقاسكم المعتاد برقم واحد , غير جاهز للتوصيل من يومين الى ٤ ايام عمل لايوجد استبدال او استرجاع للتصاميم الخاصة",
   },
-
-  // حقيبة tote bag
-  {
-    id: 5,
-    name: "حقيبة Tote Bag مميزة",
-    price: 8.0,
-    defaultImage: "images/tshirt-4/adults-short-4.jpg",
-    stock: 20,
-    category: "bags",
-    description: "حقيبة قماشية عملية وأنيقة",
-    material: "قماش قطني عالي الجودة",
-    dimensions: "40 × 35 سم",
-    colors: ["بيج", "أسود", "أبيض"],
-  },
-
-  // سجادة صلاة صغيرة
   {
     id: 6,
-    name: "سجادة صلاة صغيرة 'تصميم المسجد النبوي'",
-    price: 12.0,
-    defaultImage: "images/tshirt-4/adults-short-4.jpg",
-    stock: 15,
-    category: "carpets",
-    description: "سجادة صلاة صغيرة عالية الجودة",
-    material: "ألياف ناعمة مقاومة للاتساخ",
-    dimensions: "70 × 110 سم",
-    colors: ["أزرق", "أخضر", "بني", "أحمر"],
+    name: "تيشيرت تطريز 'تصميم 313 '",
+    priceKids: 8.0,
+    priceAdults: 10.0,
+    images: {
+      shortSleeveAdults: "images/tshirt-6/adults-short-6.jpg",
+    },
+    defaultImage: "images/tshirt-6/adults-short-6.jpg",
+    category: "tshirts",
+    description: "تيشيرت تطريز عالي الجودة",
+    material: "قطن 100%",
+    detailedStock: {
+      shortSleeve: {
+        kids: {
+          "6M": 2,
+          "1Y": 2,
+          "2Y": 2,
+          "3Y": 2,
+          "4Y": 2,
+          "5-6Y": 3,
+          "7-8Y": 3,
+          "9-10Y": 3,
+          "11-12Y": 3,
+        },
+        adults: {
+          S: 2,
+          M: 2,
+          L: 3,
+          XL: 4,
+          XXL: 4,
+        },
+      },
+      longSleeve: {
+        adults: {
+          XS: 2,
+          S: 2,
+          XL: 2,
+          XXL: 2,
+        },
+      },
+    },
+    colors: ["أسود"],
+    note: "اختيار أكبر من مقاسكم المعتاد برقم واحد , غير جاهز للتوصيل من يومين الى ٤ ايام عمل لايوجد استبدال او استرجاع للتصاميم الخاصة",
   },
   {
     id: 7,
-    name: "سجادة صلاة صغيرة 'تصميم الكعبة المشرفة'",
-    price: 12.0,
-    defaultImage: "images/tshirt-4/adults-short-4.jpg",
-    stock: 12,
-    category: "carpets",
-    description: "سجادة صلاة صغيرة عالية الجودة",
-    material: "ألياف ناعمة مقاومة للاتساخ",
-    dimensions: "70 × 110 سم",
-    colors: ["أزرق", "أخضر", "بني", "أحمر"],
+    name: "تيشيرت تطريز 'خادم الحُسين '",
+    priceKids: 8.0,
+    priceAdults: 10.0,
+    images: {
+      shortSleeveAdults: "images/tshirt-7/adults-short-7.jpg",
+    },
+    defaultImage: "images/tshirt-7/adults-short-7.jpg",
+    category: "tshirts",
+    description: "تيشيرت تطريز عالي الجودة",
+    material: "قطن 100%",
+    detailedStock: {
+      shortSleeve: {
+        kids: {
+          "6M": 2,
+          "1Y": 2,
+          "2Y": 2,
+          "3Y": 2,
+          "4Y": 2,
+          "5-6Y": 3,
+          "7-8Y": 3,
+          "9-10Y": 3,
+          "11-12Y": 3,
+        },
+        adults: {
+          S: 2,
+          M: 2,
+          L: 3,
+          XL: 4,
+          XXL: 4,
+        },
+      },
+      longSleeve: {
+        adults: {
+          XS: 2,
+          S: 2,
+          XL: 2,
+          XXL: 2,
+        },
+      },
+    },
+    colors: ["أسود"],
+    note: "اختيار أكبر من مقاسكم المعتاد برقم واحد , غير جاهز للتوصيل من يومين الى ٤ ايام عمل لايوجد استبدال او استرجاع للتصاميم الخاصة",
   },
+
+  {
+    id: 8,
+    name: " تيشيرت تطريز ' تصميم ياحُسين ٢٤ '",
+    priceKids: 4.5,
+    priceAdults: 5.5,
+    images: {
+      shortSleeveAdults: "images/tshirt-8/adults-short-8.jpg",
+    },
+    defaultImage: "images/tshirt-8/adults-short-8.jpg",
+    category: "tshirts",
+    description: "تيشيرت تطريز عالي الجودة",
+    material: "قطن 100%",
+    detailedStock: {
+      shortSleeve: {
+        kids: {
+          "5-6Y": 1,
+        },
+      },
+      longSleeve: {
+        adults: {
+          S: 1,
+          L: 1,
+          XL: 2,
+        },
+      },
+    },
+    colors: ["أسود"],
+    note: "اختيار أكبر من مقاسكم المعتاد برقم واحد , غير جاهز للتوصيل من يومين الى ٤ ايام عمل لايوجد استبدال او استرجاع للتصاميم الخاصة",
+  },
+
+  {
+    id: 9,
+    name: "تيشيرت تطريز ' تصميم يازينب ٢٤ '",
+    priceKids: 8.0,
+    priceAdults: 10.0,
+    images: {
+      shortSleeveAdults: "images/tshirt-9/adults-short-9.jpg",
+    },
+    defaultImage: "images/tshirt-9/adults-short-9.jpg",
+    category: "tshirts",
+    description: "تيشيرت تطريز عالي الجودة",
+    material: "قطن 100%",
+    detailedStock: {
+      shortSleeve: {
+        kids: {
+          "1Y": 1,
+        },
+      },
+      longSleeve: {
+        adults: {
+          L: 1,
+          XL: 2,
+          XXL: 2,
+        },
+      },
+    },
+    colors: ["أسود"],
+    note: "اختيار أكبر من مقاسكم المعتاد برقم واحد , غير جاهز للتوصيل من يومين الى ٤ ايام عمل لايوجد استبدال او استرجاع للتصاميم الخاصة",
+  },
+
+  {
+    id: 10,
+    name: "تيشيرت تطريز ' تصميم قمر بني هاشم ٢٣ '",
+    priceKids: 8.0,
+    priceAdults: 10.0,
+    images: {
+      shortSleeveAdults: "images/tshirt-10/adults-short-10.jpg",
+    },
+    defaultImage: "images/tshirt-10/adults-short-10.jpg",
+    category: "tshirts",
+    description: "تيشيرت تطريز عالي الجودة",
+    material: "قطن 100%",
+    detailedStock: {
+      shortSleeve: {
+        kids: {
+          "14Y": 1,
+        },
+        adults: {
+          L: 2,
+          XL: 2,
+        },
+      },
+    },
+    colors: ["أسود"],
+    note: "اختيار أكبر من مقاسكم المعتاد برقم واحد , غير جاهز للتوصيل من يومين الى ٤ ايام عمل لايوجد استبدال او استرجاع للتصاميم الخاصة",
+  },
+
+  {
+    id: 11,
+    name: " تيشيرت تطريز 'يا حُسين '٢٣",
+    priceKids: 8.0,
+    priceAdults: 10.0,
+    images: {
+      shortSleeveAdults: "images/tshirt-11/adults-short-11.jpg",
+    },
+    defaultImage: "images/tshirt-11/adults-short-11.jpg",
+    category: "tshirts",
+    description: "تيشيرت تطريز عالي الجودة",
+    material: "قطن 100%",
+    detailedStock: {
+      shortSleeve: {
+        kids: {
+          "7-8Y": 1,
+          "9-10Y": 2,
+          "11-12Y": 1,
+          "13Y": 1,
+        },
+      },
+    },
+    colors: ["أسود"],
+    note: "اختيار أكبر من مقاسكم المعتاد برقم واحد , غير جاهز للتوصيل من يومين الى ٤ ايام عمل لايوجد استبدال او استرجاع للتصاميم الخاصة",
+  },
+
+  // حقيبة tote bag
+  // {
+  //   id: 5,
+  //   name: "حقيبة Tote Bag مميزة",
+  //   price: 8.0,
+  //   defaultImage: "images/tshirt-4/adults-short-4.jpg",
+  //   stock: 20,
+  //   category: "bags",
+  //   description: "حقيبة قماشية عملية وأنيقة",
+  //   material: "قماش قطني عالي الجودة",
+  //   dimensions: "40 × 35 سم",
+  //   colors: ["بيج", "أسود", "أبيض"],
+  // },
+
+  // سجادة صلاة صغيرة
+  // {
+  //   id: 6,
+  //   name: "سجادة صلاة صغيرة 'تصميم المسجد النبوي'",
+  //   price: 12.0,
+  //   defaultImage: "images/tshirt-4/adults-short-4.jpg",
+  //   stock: 15,
+  //   category: "carpets",
+  //   description: "سجادة صلاة صغيرة عالية الجودة",
+  //   material: "ألياف ناعمة مقاومة للاتساخ",
+  //   dimensions: "70 × 110 سم",
+  //   colors: ["أزرق", "أخضر", "بني", "أحمر"],
+  // },
+  // {
+  //   id: 7,
+  //   name: "سجادة صلاة صغيرة 'تصميم الكعبة المشرفة'",
+  //   price: 12.0,
+  //   defaultImage: "images/tshirt-4/adults-short-4.jpg",
+  //   stock: 12,
+  //   category: "carpets",
+  //   description: "سجادة صلاة صغيرة عالية الجودة",
+  //   material: "ألياف ناعمة مقاومة للاتساخ",
+  //   dimensions: "70 × 110 سم",
+  //   colors: ["أزرق", "أخضر", "بني", "أحمر"],
+  // },
 
   // // لاصق معدني
   // {
