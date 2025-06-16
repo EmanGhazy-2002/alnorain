@@ -814,6 +814,7 @@ const defaultProducts = [
     category: "accessories",
     description: "مدالية أنيقة لتعليق في السيارة",
   },
+  // فواصل كتب
 
   {
     id: 19,
