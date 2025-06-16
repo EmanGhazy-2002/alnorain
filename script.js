@@ -328,6 +328,14 @@ const defaultProducts = [
           L: 3,
         },
       },
+      longSleeve: {
+        adults: {
+          XS: 2,
+          S: 2,
+          XL: 2,
+          XXL: 2,
+        },
+      },
     },
     colors: ["أسود"],
     note: "اختيار أكبر من مقاسكم المعتاد برقم واحد",
