@@ -756,7 +756,7 @@ const defaultProducts = [
     price: 0.5,
     defaultImage: "images/medal/medal-3.jpg",
     stock: 15,
-    category: "accessories",
+    category: "book",
     //dimensions: "4 insh",
     note: "يتم الاختيار بشكل عشوائي ",
   },
