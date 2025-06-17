@@ -786,7 +786,7 @@ const defaultProducts = [
     dimensions: "  15 × 15 سم للسجادة و للحقيبة 9 × 8 سم",
   },
   {
-    id: 26,
+    id: 25,
     name: "اللهم ارزقني شفاعة الحُسين 'تطريز' أسود",
     price: 3.5,
     defaultImage: "images/prayer/prayer-5.jpg",
