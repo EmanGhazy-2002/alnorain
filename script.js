@@ -858,7 +858,7 @@ const defaultProducts = [
   },
   {
     id: 22,
-    name: "ياحُسين ",
+    name: "ياحُسين سهم",
     price: 1.25,
     defaultImage: "images/stickers/stickers-3.jpg",
     stock: 15,
