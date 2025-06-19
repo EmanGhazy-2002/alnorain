@@ -1934,48 +1934,53 @@ function removeOrderItem(productId) {
 // Area and delivery functions
 function updateAreas() {
   const governorateSelect = document.getElementById("governorate");
-  const areaInput = document.getElementById("area");
-  const areaDropdown = document.getElementById("areaDropdown");
+  const areaSelect = document.getElementById("area");
   const deliveryPrice = document.getElementById("deliveryPrice");
   const orderDeliveryPrice = document.getElementById("orderDeliveryPrice");
 
-  if (!governorateSelect || !areaInput || !areaDropdown) return;
+  if (!governorateSelect || !areaSelect) return;
 
   const selectedGovernorate = governorateSelect.value;
-  areaInput.value = "";
-  areaDropdown.style.display = "none";
+  areaSelect.innerHTML = '<option value="">اختر المنطقة</option>';
+
+  if (deliveryPrice) {
+    deliveryPrice.textContent = "يرجى اختيار المنطقة";
+  }
+  if (orderDeliveryPrice) {
+    orderDeliveryPrice.textContent = "حسب المنطقة";
+  }
 
   if (selectedGovernorate && kuwaitAreas[selectedGovernorate]) {
-    areaInput.placeholder = `اختر منطقة في ${selectedGovernorate}`;
-  } else {
-    areaInput.placeholder = "ابدأ بكتابة اسم المنطقة...";
-    if (deliveryPrice) {
-      deliveryPrice.textContent = "يرجى اختيار المنطقة";
-    }
-    if (orderDeliveryPrice) {
-      orderDeliveryPrice.textContent = "حسب المنطقة";
-    }
+    const areas = kuwaitAreas[selectedGovernorate].filter(
+      (area) => deliveryPrices[area]
+    );
+    areas.forEach((area) => {
+      const option = document.createElement("option");
+      option.value = area;
+      option.textContent = `${area} (${deliveryPrices[area]} دك)`;
+      areaSelect.appendChild(option);
+    });
   }
 }
 
 // Filter areas based on search
-function filterAreas(searchTerm) {
-  const governorateSelect = document.getElementById("governorate");
-  const selectedGovernorate = governorateSelect?.value;
+// function filterAreas(searchTerm) {
+//   const governorateSelect = document.getElementById("governorate");
+//   const selectedGovernorate = governorateSelect?.value;
 
-  if (!selectedGovernorate || !kuwaitAreas[selectedGovernorate]) {
-    return [];
-  }
+//   if (!selectedGovernorate || !kuwaitAreas[selectedGovernorate]) {
+//     return [];
+//   }
 
-  const areas = kuwaitAreas[selectedGovernorate];
-  if (!searchTerm || searchTerm.length < 1) {
-    return [];
-  }
+//   const areas = kuwaitAreas[selectedGovernorate];
+//   if (!searchTerm || searchTerm.length < 1) {
+//     return [];
+//   }
 
-  return areas.filter((area) =>
-    area.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-}
+//   return areas.filter((area) =>
+//     area.toLowerCase().includes(searchTerm.toLowerCase())
+//   );
+// }
 
 // Show area dropdown
 function showAreaDropdown(filteredAreas) {
